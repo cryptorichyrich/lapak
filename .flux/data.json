@@ -1,0 +1,99 @@
+{
+  "projects": [
+    {
+      "id": "e3fpq8z",
+      "name": "Lapak Platform"
+    }
+  ],
+  "epics": [
+    {
+      "id": "8az93hj",
+      "title": "Phase 1: Foundation & Infrastructure",
+      "status": "in_progress",
+      "depends_on": [],
+      "notes": "Phase 1 audit complete. 6 gaps identified. Closing gaps before Phase 2.",
+      "auto": false,
+      "project_id": "e3fpq8z"
+    },
+    {
+      "id": "zccv0pq",
+      "title": "Phase 2: Storefront — Buyer-Facing Pages",
+      "status": "planning",
+      "depends_on": ["8az93hj"],
+      "notes": "18 tasks. New: buyer order tracking (2.17, 2.18). Storefront + product pages + cart + checkout.",
+      "auto": false,
+      "project_id": "e3fpq8z"
+    },
+    {
+      "id": "f4bxa31",
+      "title": "Phase 3: Seller Studio — Editor + Management",
+      "status": "planning",
+      "depends_on": ["zccv0pq"],
+      "notes": "28 tasks. Order manager now includes status timeline + seller_notes.",
+      "auto": false,
+      "project_id": "e3fpq8z"
+    },
+    {
+      "id": "s1mg2aj",
+      "title": "Phase 4: Payments + Shipping + Domains",
+      "status": "planning",
+      "depends_on": ["f4bxa31"],
+      "notes": "",
+      "auto": false,
+      "project_id": "e3fpq8z"
+    },
+    {
+      "id": "zvvsvyc",
+      "title": "Phase 5: Console + Marketing + Ship",
+      "status": "planning",
+      "depends_on": ["s1mg2aj"],
+      "notes": "",
+      "auto": false,
+      "project_id": "e3fpq8z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "g1",
+      "title": "GAP 1: Create seed.sql with demo data",
+      "status": "pending",
+      "epic_id": "8az93hj",
+      "notes": "2 tenants, 3 themes, 10 products, 3 blog posts, 8 homepage blocks, test users"
+    },
+    {
+      "id": "g2",
+      "title": "GAP 2: Create .dev.vars with Supabase creds",
+      "status": "in_progress",
+      "epic_id": "8az93hj",
+      "notes": "SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY"
+    },
+    {
+      "id": "g3",
+      "title": "GAP 3: Apply migration 00007 (order detail enhancements)",
+      "status": "completed",
+      "epic_id": "8az93hj",
+      "notes": "tracking_token, order_status_log, shipping_origins, normalize_phone(), platform_admin RLS bypass. File written."
+    },
+    {
+      "id": "g4",
+      "title": "GAP 4: Add CSRF middleware to write routes",
+      "status": "pending",
+      "epic_id": "8az93hj",
+      "notes": "All POST/PUT/DELETE routes need CSRF token validation. Cookie + double-submit pattern."
+    },
+    {
+      "id": "g5",
+      "title": "GAP 5: Create KV namespace + R2 bucket, wire wrangler.toml",
+      "status": "pending",
+      "epic_id": "8az93hj",
+      "notes": "KV for session/cache. R2 for tenant uploads. Update wrangler.toml bindings."
+    },
+    {
+      "id": "g6",
+      "title": "GAP 6: Re-verify health check — all services OK",
+      "status": "pending",
+      "epic_id": "8az93hj",
+      "notes": "After all gaps closed, run full health check. DB + KV + R2 + Auth."
+    }
+  ]
+}

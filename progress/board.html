@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Lapak — Progress Board</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.08);
+    --border: rgba(201,168,76,0.15);
+    --gold: #c9a84c;
+    --gold-dim: rgba(201,168,76,0.3);
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --green: #34d399;
+    --blue: #60a5fa;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --purple: #a78bfa;
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .header h1 {
+    font-size: 18px; font-weight: 700; letter-spacing: -0.3px;
+    background: linear-gradient(135deg, var(--gold), #e8d48b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .subtitle { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Stats bar */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    padding: 12px 16px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    text-align: center;
+  }
+  .stat .num { font-size: 22px; font-weight: 700; line-height: 1; }
+  .stat .label { font-size: 10px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Progress bar */
+  .progress-wrap { padding: 0 16px 12px; }
+  .progress-bar {
+    height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 2px; transition: width 0.6s ease;
+    background: linear-gradient(90deg, var(--gold), #e8d48b);
+  }
+  .progress-text {
+    font-size: 11px; color: var(--text-dim); margin-top: 4px; text-align: right;
+  }
+
+  /* Phase cards */
+  .phases { padding: 8px 16px 100px; }
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .phase:hover { border-color: var(--gold-dim); }
+  .phase.active { border-color: var(--gold); }
+  .phase-header {
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .phase-header:active { background: var(--surface-hover); }
+  .phase-left { flex: 1; }
+  .phase-title { font-size: 14px; font-weight: 600; }
+  .phase-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .phase-badge {
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border-radius: 6px; white-space: nowrap;
+  }
+  .phase-progress {
+    height: 2px; background: rgba(255,255,255,0.05);
+  }
+  .phase-progress-fill {
+    height: 100%; transition: width 0.4s ease;
+    background: var(--gold);
+  }
+
+  /* Tasks */
+  .tasks { padding: 0 12px 12px; display: none; }
+  .phase.open .tasks { display: block; }
+  .task {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px;
+  }
+  .task:last-child { border-bottom: none; }
+  .task-status {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    margin-top: 1px; display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .task-status.pending { background: var(--surface); border: 1.5px solid var(--text-dim); }
+  .task-status.in_progress { background: var(--blue); }
+  .task-status.done { background: var(--green); }
+  .task-status.blocked { background: var(--red); }
+  .task-status.skipped { background: var(--orange); opacity: 0.6; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { line-height: 1.4; }
+  .task-title.done-text { text-decoration: line-through; opacity: 0.5; }
+  .task-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .tag {
+    font-size: 10px; padding: 1px 6px; border-radius: 4px;
+    background: var(--surface);
+  }
+  .tag.p0 { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag.p1 { background: rgba(251,191,36,0.15); color: var(--orange); }
+  .tag.p2 { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .tag.hermes { color: var(--purple); }
+  .tag.bio { color: var(--gold); }
+  .tag.both { color: var(--green); }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .header { padding: 24px 24px 16px; }
+    .stats { padding: 16px 24px; }
+    .progress-wrap { padding: 0 24px 16px; }
+    .phases { padding: 8px 24px 60px; max-width: 800px; margin: 0 auto; }
+    .header h1 { font-size: 22px; }
+  }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏗️ Lapak Progress Board</h1>
+  <div class="subtitle">95 Steps · 5 Phases · Shopify for Indonesian UMKM</div>
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat"><div class="num" id="s-total">—</div><div class="label">Total</div></div>
+  <div class="stat"><div class="num" id="s-done" style="color:var(--green)">0</div><div class="label">Done</div></div>
+  <div class="stat"><div class="num" id="s-active" style="color:var(--blue)">0</div><div class="label">Active</div></div>
+  <div class="stat"><div class="num" id="s-blocked" style="color:var(--red)">0</div><div class="label">Blocked</div></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="progress-text" id="progress-text">0% complete</div>
+</div>
+
+<div class="phases" id="phases"></div>
+
+<script>
+const API = '';
+let data = null;
+
+async function load() {
+  try {
+    const [overview, stats] = await Promise.all([
+      fetch(API + '/api/overview').then(r => r.json()),
+      fetch(API + '/api/stats').then(r => r.json())
+    ]);
+    data = overview.phases;
+    renderStats(stats);
+    renderPhases(data);
+  } catch(e) {
+    document.getElementById('phases').innerHTML = '<div class="empty">⚠️ Could not connect to server. Is it running?<br><code style="font-size:11px;color:#666">node progress/server.js</code></div>';
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('s-total').textContent = s.total || 0;
+  document.getElementById('s-done').textContent = s.done || 0;
+  document.getElementById('s-active').textContent = s.in_progress || 0;
+  document.getElementById('s-blocked').textContent = s.blocked || 0;
+  const pct = s.percent || 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '% complete · ' + (s.done||0) + '/' + (s.total||0) + ' tasks';
+}
+
+function statusIcon(s) {
+  if (s === 'done') return '✓';
+  if (s === 'in_progress') return '→';
+  if (s === 'blocked') return '!';
+  if (s === 'skipped') return '–';
+  return '';
+}
+
+function prioLabel(p) {
+  if (p === 0) return 'P0';
+  if (p === 1) return 'P1';
+  return 'P2';
+}
+
+function renderPhases(phases) {
+  const el = document.getElementById('phases');
+  if (!phases.length) {
+    el.innerHTML = '<div class="empty">No phases yet. Populate tasks via Flux CLI.</div>';
+    return;
+  }
+  el.innerHTML = phases.map(p => {
+    const total = p.total || 0;
+    const done = p.done || 0;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const statusColor = pct === 100 ? 'var(--green)' : p.in_progress > 0 ? 'var(--blue)' : p.blocked > 0 ? 'var(--red)' : 'var(--text-dim)';
+    return `
+      <div class="phase" id="phase-${p.id}" onclick="togglePhase('${p.id}')">
+        <div class="phase-header">
+          <div class="phase-left">
+            <div class="phase-title">${esc(p.title)}</div>
+            <div class="phase-meta">${done}/${total} tasks · ${p.status}</div>
+          </div>
+          <div class="phase-badge" style="background:${statusColor}22;color:${statusColor}">${pct}%</div>
+        </div>
+        <div class="phase-progress"><div class="phase-progress-fill" style="width:${pct}%"></div></div>
+        <div class="tasks" id="tasks-${p.id}">
+          <div class="empty" style="padding:12px">Tap to load tasks...</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function togglePhase(id) {
+  const el = document.getElementById('phase-' + id);
+  el.classList.toggle('open');
+  if (el.classList.contains('open')) loadTasks(id);
+}
+
+async function loadTasks(epicId) {
+  const container = document.getElementById('tasks-' + epicId);
+  if (container.dataset.loaded) return;
+  try {
+    const res = await fetch(API + '/api/tasks?epic=' + epicId).then(r => r.json());
+    container.dataset.loaded = '1';
+    if (!res.tasks || !res.tasks.length) {
+      container.innerHTML = '<div class="empty" style="padding:16px">No tasks yet</div>';
+      return;
+    }
+    container.innerHTML = res.tasks.map(t => {
+      const isDone = t.status === 'done';
+      return `
+        <div class="task">
+          <div class="task-status ${t.status}">${statusIcon(t.status)}</div>
+          <div class="task-body">
+            <div class="task-title ${isDone ? 'done-text' : ''}">${esc(t.title)}</div>
+            <div class="task-tags">
+              <span class="tag p${t.priority}">${prioLabel(t.priority)}</span>
+              ${t.notes ? '<span class="tag hermes">agent</span>' : ''}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty" style="padding:16px">Error loading tasks</div>';
+  }
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

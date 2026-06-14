@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Hermes PM · Lapak</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#08080d;--bg2:#0f0f18;--bg3:#161625;--bg4:#1e1e35;
+--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
+--gold:#c9a84c;--gold2:#e8c95a;--gold-dim:rgba(201,168,76,0.12);
+--text:#e8e8f0;--text2:#9898b0;--text3:#5c5c78;
+--green:#4ade80;--blue:#60a5fa;--red:#f87171;--orange:#fb923c;--purple:#c084fc;
+--sb:250px;
+--font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,sans-serif;
+}
+html,body{height:100%;width:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+a{color:var(--gold);text-decoration:none}
+
+/* ── LOGIN ── */
+#login{display:flex;align-items:center;justify-content:center;height:100vh;width:100vw;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.06),transparent 60%)}
+.login-box{width:340px;padding:36px;background:var(--bg2);border:1px solid var(--glass2);border-radius:20px;text-align:center}
+.login-box h1{font-size:26px;font-weight:800;color:var(--gold);letter-spacing:3px}
+.login-box p{color:var(--text3);margin:6px 0 20px;font-size:13px}
+.login-box input{width:100%;padding:12px 14px;background:var(--bg3);border:1px solid var(--glass2);border-radius:10px;color:var(--text);font-size:14px;outline:none}
+.login-box input:focus{border-color:var(--gold)}
+.login-box button{width:100%;padding:12px;margin-top:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;color:#0a0a0f;font-size:14px;font-weight:600;cursor:pointer}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;min-height:16px}
+
+/* ── APP SHELL ── */
+#app{display:none;height:100vh;width:100vw}
+.sb{position:fixed;left:0;top:0;bottom:0;width:var(--sb);background:var(--bg2);border-right:1px solid var(--glass);display:flex;flex-direction:column;z-index:100;transition:transform .25s}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--glass)}
+.sb-logo b{font-size:18px;color:var(--gold);letter-spacing:2px}
+.sb-logo small{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2px}
+.sb-scroll{flex:1;overflow-y:auto}
+.sb-sec{padding:10px 14px 4px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .12s;position:relative}
+.sb-item:hover{background:var(--glass2);color:var(--text)}
+.sb-item.on{color:var(--gold);background:var(--gold-dim)}
+.sb-item.on::after{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--gold);border-radius:0 2px 2px 0}
+.sb-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.sb-badge{margin-left:auto;background:var(--gold-dim);color:var(--gold);font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600}
+.sb-footer{padding:10px 14px;border-top:1px solid var(--glass);font-size:10px;color:var(--text3)}
+.sb-close{display:none;position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+
+/* Main — full width */
+.main{margin-left:var(--sb);height:100vh;display:flex;flex-direction:column;width:calc(100vw - var(--sb))}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-bottom:1px solid var(--glass);min-height:44px;flex-shrink:0}
+.topbar h2{font-size:15px;font-weight:600}
+.topbar-r{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3)}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+.burger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer}
+
+/* ── STAT CARDS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.sc{background:var(--bg2);border:1px solid var(--glass);border-radius:10px;padding:14px}
+.sc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.sc-val{font-size:26px;font-weight:700;margin-top:2px}
+.sc-sub{font-size:10px;color:var(--text3)}
+
+/* PROGRESS */
+.prog-wrap{background:var(--bg3);border-radius:20px;height:6px;overflow:hidden}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .4s}
+
+/* ── PHASE CARD ── */
+.phase{background:var(--bg2);border:1px solid var(--glass);border-radius:10px;margin-bottom:10px}
+.phase-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer}
+.phase-h:hover{background:var(--glass)}
+.phase-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.phase-info h3{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phase-emoji{font-size:18px;flex-shrink:0}
+.phase-meta{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.phase-cnt{font-size:11px;color:var(--text2)}
+.phase-bar{width:60px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.phase-bar-f{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+.phase-chev{color:var(--text3);font-size:11px;transition:transform .2s}
+.phase.open .phase-chev{transform:rotate(180deg)}
+.phase-body{display:none;border-top:1px solid var(--glass)}
+.phase.open .phase-body{display:block}
+
+/* ── TASK ROW ── */
+.trow{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--glass);cursor:pointer;transition:background .1s}
+.trow:last-child{border:none}
+.trow:hover{background:var(--glass)}
+.tc{width:18px;height:18px;border-radius:50%;border:2px solid var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all .15s}
+.tc.done{background:var(--green);border-color:var(--green);color:#000}
+.tc.in_progress{border-color:var(--blue);background:rgba(96,165,250,0.12)}
+.tc.blocked{border-color:var(--red);background:rgba(248,113,113,0.12)}
+.tt{font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt.done{text-decoration:line-through;color:var(--text3)}
+.tp{font-size:9px;padding:1px 5px;border-radius:3px;margin-left:6px;font-weight:600}
+.tp.p0{background:rgba(248,113,113,0.12);color:var(--red)}
+.tp.p1{background:rgba(251,146,60,0.12);color:var(--orange)}
+.tp.p2{background:rgba(192,132,252,0.12);color:var(--purple)}
+
+/* ── CONVERSATIONS ── */
+.convo{position:relative;background:var(--bg2);border:1px solid var(--glass);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.convo:hover{border-color:rgba(201,168,76,0.2)}
+.convo-h{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer}
+.convo-h:hover{background:var(--glass)}
+.convo-av{width:36px;height:36px;border-radius:10px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--gold);font-weight:700}
+.convo-body{flex:1;min-width:0}
+.convo-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.convo-sub{font-size:11px;color:var(--text3);margin-top:2px;display:flex;gap:8px;align-items:center}
+.convo-sub span{display:flex;align-items:center;gap:3px}
+.convo-badge{background:var(--gold-dim);color:var(--gold);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;flex-shrink:0}
+.convo-time{font-size:10px;color:var(--text3);flex-shrink:0;white-space:nowrap}
+.convo-sessions{display:none;border-top:1px solid var(--glass);background:var(--bg)}
+.convo.open .convo-sessions{display:block}
+.convo-chev{color:var(--text3);font-size:10px;transition:transform .2s;flex-shrink:0}
+.convo.open .convo-chev{transform:rotate(180deg)}
+.csess{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 64px;border-bottom:1px solid var(--glass);cursor:pointer;transition:background .1s}
+.csess:last-child{border:none}
+.csess:hover{background:var(--glass)}
+.csess-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.csess-dot.telegram{background:var(--blue)}
+.csess-dot.cli{background:var(--green)}
+.csess-dot.api_server{background:var(--purple)}
+.csess-dot.cron{background:var(--orange)}
+.csess-dot.tui{background:var(--gold)}
+.csess-title{font-size:12px;color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csess-meta{font-size:10px;color:var(--text3);flex-shrink:0;white-space:nowrap}
+.sess-search{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--glass);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:12px}
+.sess-search:focus{border-color:var(--gold)}
+.convo-pager{display:flex;justify-content:center;gap:8px;padding:16px 0}
+.convo-pager button{padding:6px 14px;background:var(--bg3);border:1px solid var(--glass);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer}
+.convo-pager button:disabled{opacity:.3;cursor:default}
+
+/* ── SESSION DETAIL ── */
+.sess-back{display:inline-flex;align-items:center;gap:6px;color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:12px;padding:4px 0}
+.sess-back:hover{color:var(--gold)}
+.msg{margin-bottom:12px}
+.msg-u .msg-b{background:var(--gold-dim);border:1px solid rgba(201,168,76,0.15);padding:10px 14px;border-radius:12px;border-top-right-radius:4px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.msg-a .msg-b{background:var(--bg3);border:1px solid var(--glass);padding:10px 14px;border-radius:12px;border-top-left-radius:4px;font-size:13px;line-height:1.5;word-break:break-word}
+.msg-role{font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.msg-tool{font-size:11px;color:var(--purple);padding:6px 10px;background:rgba(192,132,252,0.06);border-radius:6px;margin-bottom:8px;font-style:italic}
+
+/* ── MARKDOWN BODY (inside msg-b and chat-bb) ── */
+.md-body{white-space:normal}
+.md-body p{margin:0 0 8px}.md-body p:last-child{margin-bottom:0}
+.md-body h1,.md-body h2,.md-body h3,.md-body h4{margin:12px 0 6px;font-weight:600;color:var(--text)}.md-body h1{font-size:16px}.md-body h2{font-size:15px}.md-body h3{font-size:14px}.md-body h4{font-size:13px}
+.md-body ul,.md-body ol{margin:4px 0 8px 18px}.md-body li{margin:2px 0;font-size:13px;line-height:1.5}
+.md-body code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:12px;font-family:'SF Mono',Menlo,Consolas,monospace;color:var(--gold2)}
+.md-body pre{background:rgba(0,0,0,0.4);border:1px solid var(--glass);border-radius:8px;padding:10px 12px;margin:8px 0;overflow-x:auto;max-width:100%}
+.md-body pre code{background:none;padding:0;color:var(--text);font-size:12px;line-height:1.5}
+.md-body blockquote{border-left:3px solid var(--gold);padding-left:10px;margin:6px 0;color:var(--text2);font-style:italic}
+.md-body a{color:var(--gold);text-decoration:underline}
+.md-body hr{border:none;border-top:1px solid var(--glass);margin:10px 0}
+.md-body strong{color:var(--text);font-weight:600}
+.md-body em{color:var(--text2)}
+.md-body table{border-collapse:collapse;margin:6px 0;font-size:12px;width:100%}
+.md-body th,.md-body td{border:1px solid var(--glass);padding:4px 8px;text-align:left}
+.md-body th{background:var(--bg4);font-weight:600}
+.md-body img{max-width:100%;border-radius:8px;margin:6px 0;display:block}
+.md-body .msg-img{max-width:280px;cursor:pointer;transition:transform .15s}.md-body .msg-img:hover{transform:scale(1.02)}
+
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 44px)}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px 20px}
+.chat-m{display:flex;gap:8px;margin-bottom:12px}
+.chat-m.user{flex-direction:row-reverse}
+.chat-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.chat-m.asst .chat-av{background:var(--gold-dim);color:var(--gold)}
+.chat-m.user .chat-av{background:rgba(96,165,250,0.12);color:var(--blue)}
+.chat-bb{padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word;max-width:75%}
+.chat-m.user .chat-bb{white-space:pre-wrap}
+.chat-m.asst .chat-bb{background:var(--bg3);border:1px solid var(--glass);border-top-left-radius:4px}
+.chat-m.user .chat-bb{background:var(--gold-dim);border:1px solid rgba(201,168,76,0.15);border-top-right-radius:4px}
+.chat-input-area{padding:10px 20px 16px;border-top:1px solid var(--glass);display:flex;gap:8px}
+.chat-in{flex:1;padding:10px 12px;background:var(--bg3);border:1px solid var(--glass);border-radius:8px;color:var(--text);font-size:13px;outline:none;resize:none;max-height:100px;font-family:var(--font)}
+.chat-in:focus{border-color:var(--gold)}
+.chat-send{padding:10px 16px;background:var(--gold);border:none;border-radius:8px;color:#0a0a0f;font-weight:600;cursor:pointer;font-size:13px}
+.chat-typing{padding:4px 20px;font-size:11px;color:var(--text3);font-style:italic}
+.chat-offline{padding:8px 20px;font-size:12px;color:var(--orange);background:rgba(251,146,60,0.06);text-align:center}
+
+/* ── SCRUM ── */
+.burn{background:var(--bg2);border:1px solid var(--glass);border-radius:10px;padding:20px;margin-bottom:16px}
+.burn h3{font-size:14px;margin-bottom:12px;color:var(--text2)}
+.burn-chart{display:flex;align-items:flex-end;gap:6px;height:120px}
+.vel-table{width:100%;border-collapse:collapse}
+.vel-table th{text-align:left;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:1px solid var(--glass)}
+.vel-table td{padding:8px 0;font-size:12px;border-bottom:1px solid var(--glass)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--glass);border-radius:14px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--glass)}
+.modal-h h3{font-size:14px}
+.modal-x{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.modal-b{padding:16px}
+.mf{margin-bottom:14px}
+.mf label{display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.mf select,.mf textarea{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--glass);border-radius:6px;color:var(--text);font-size:13px;outline:none;font-family:var(--font)}
+.mf textarea{min-height:60px;resize:vertical}
+.sbtns{display:flex;gap:4px}
+.sbtn{padding:5px 12px;border-radius:6px;border:1px solid var(--glass);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-weight:500}
+.sbtn.on.todo{background:rgba(104,104,128,0.2);border-color:var(--text3);color:var(--text)}
+.sbtn.on.in_progress{background:rgba(96,165,250,0.15);border-color:var(--blue);color:var(--blue)}
+.sbtn.on.done{background:rgba(74,222,128,0.15);border-color:var(--green);color:var(--green)}
+.sbtn.on.blocked{background:rgba(248,113,113,0.15);border-color:var(--red);color:var(--red)}
+
+/* ── FILTER TABS ── */
+.ftabs{display:flex;gap:4px;margin-bottom:16px}
+.ftab{padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;background:var(--bg3);border:1px solid var(--glass);color:var(--text2)}
+.ftab.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+
+@media(max-width:768px){
+  .sb{transform:translateX(-100%)}
+  .sb.open{transform:translateX(0)}
+  .sb-close{display:block}
+  .main{margin-left:0;width:100vw}
+  .burger{display:block}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .content{padding:14px}
+  .chat-bb{max-width:88%}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <h1>HERMES</h1>
+    <p>Project Management · Lapak</p>
+    <input type="password" id="lp" placeholder="Password" autofocus>
+    <button onclick="doLogin()">Unlock</button>
+    <div class="login-err" id="le"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sb" id="sb">
+    <button class="sb-close" onclick="toggleSb()">✕</button>
+    <div class="sb-logo"><b>HERMES</b><small>PM</small></div>
+    <div class="sb-scroll">
+      <div class="sb-sec">Workspace</div>
+      <div class="sb-item on" data-v="home" onclick="go('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </div>
+      <div class="sb-item" data-v="tasks" onclick="go('tasks')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        All Tasks <span class="sb-badge" id="b-t">99</span>
+      </div>
+      <div class="sb-item" data-v="phases" onclick="go('phases')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Phases
+      </div>
+      <div class="sb-item" data-v="scrum" onclick="go('scrum')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Scrum
+      </div>
+      <div class="sb-sec">Chat</div>
+      <div class="sb-item" data-v="sessions" onclick="go('sessions')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Conversations <span class="sb-badge" id="b-s">—</span>
+      </div>
+      <div class="sb-item" data-v="cron" onclick="go('cron')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Cron Jobs <span class="sb-badge" id="b-c">—</span>
+      </div>
+      <div class="sb-item" data-v="chat" onclick="go('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        New Chat
+      </div>
+    </div>
+    <div class="sb-footer">Lapak Platform · <span id="sf">0</span>/<span id="sf2">99</span> tasks done</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="burger" onclick="toggleSb()">☰</button>
+        <h2 id="th">Home</h2>
+      </div>
+      <div class="topbar-r"><span id="td"></span></div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-h"><h3 id="mt">Task</h3><button class="modal-x" onclick="closeM()">×</button></div>
+    <div class="modal-b">
+      <div class="mf"><label>Status</label><div class="sbtns" id="ms"></div></div>
+      <div class="mf"><label>Notes</label><textarea id="mn" placeholder="Notes..."></textarea></div>
+      <div class="mf"><label>Priority</label><select id="mp"><option value="0">P0 Critical</option><option value="1">P1 High</option><option value="2">P2 Normal</option></select></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+<script>
+// Configure marked for safe rendering
+marked.setOptions({ breaks:true, gfm:true });
+</script>
+<script>
+let D=null,V='home',SD=null,MT=null,hermesOnline=false,chatMsgs=[],chatBusy=false;
+const STATUS_CYCLE=['todo','in_progress','done'];
+const STATUS_LABELS={todo:'Todo',in_progress:'In Progress',done:'Done',blocked:'Blocked'};
+
+// ── SLASH COMMANDS ──
+const SLASH_COMMANDS=[
+  {cmd:'/status',desc:'Show project status — phases, tasks, completion %'},
+  {cmd:'/tasks',desc:'List all tasks with current status'},
+  {cmd:'/task',args:'<id>',desc:'Show details of a specific task'},
+  {cmd:'/phase',args:'<1-5>',desc:'Show tasks in a phase'},
+  {cmd:'/scrum',desc:'Sprint velocity and burndown summary'},
+  {cmd:'/search',args:'<query>',desc:'Search tasks by keyword'},
+  {cmd:'/add-task',args:'<title>',desc:'Create a new task'},
+  {cmd:'/help',desc:'Show all available commands'},
+  {cmd:'/clear',desc:'Clear chat messages'},
+  {cmd:'/sessions',desc:'Show recent Telegram sessions'},
+  {cmd:'/context',desc:'Show current project context (PRD, phase, decisions)'},
+  {cmd:'/prd',desc:'Show PRD summary and chapter list'},
+  {cmd:'/next',desc:'What should we work on next?'},
+];
+let slashOpen=false;
+
+// ── HISTORY ──
+window.onpopstate=e=>{
+  if(!e.state)return;
+  showView(e.state.v,e.state.d);
+};
+function go(v,d){
+  const path=d?`#/${v}/${d}`:`#/${v}`;
+  history.pushState({v,d},'',path);
+  showView(v,d);
+}
+
+// ── API ──
+async function api(p,o={}){
+  const r=await fetch(p,{...o,headers:{'Content-Type':'application/json',...o.headers},credentials:'include'});
+  return r.json();
+}
+
+// ── AUTH ──
+async function doLogin(){
+  const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify({password:document.getElementById('lp').value})});
+  if(r.ok){initApp()}
+  else document.getElementById('le').textContent=r.error;
+}
+document.getElementById('lp').onkeydown=e=>{if(e.key==='Enter')doLogin()};
+
+async function init(){
+  const r=await api('/api/auth/check');
+  if(r.authenticated)initApp();
+}
+async function initApp(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await refresh();
+  const hash=location.hash.replace('#/','');
+  const parts=hash.split('/');
+  showView(parts[0]||'home',parts[1]||null);
+}
+
+async function refresh(){
+  D=await api('/api/overview');
+  document.getElementById('b-t').textContent=D.stats.total;
+  document.getElementById('sf').textContent=D.stats.done;
+  document.getElementById('sf2').textContent=D.stats.total;
+  try{const hs=await api('/api/hermes-status');hermesOnline=hs.online}catch(e){}
+  try{const s=await api('/api/sessions/stats');document.getElementById('b-s').textContent=s.conversations||s.total;document.getElementById('b-c').textContent=s.cron_jobs||0}catch(e){}
+}
+
+function showView(v,d){
+  V=v;SD=null;
+  document.getElementById('td').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
+  document.getElementById('sb').classList.remove('open');
+  const el=document.getElementById('view');
+  el.scrollTop=0;el.style.padding=(v==='chat')?'0':'20px';
+  if(v==='home')renderHome(el);
+  else if(v==='tasks')renderTasks(el);
+  else if(v==='phases')renderPhases(el);
+  else if(v==='scrum')renderScrum(el);
+  else if(v==='sessions')renderSessions(el);
+  else if(v==='conversation')renderConversation(el,d);
+  else if(v==='session')renderSession(el,d);
+  else if(v==='cron')renderCron(el);
+  else if(v==='chat')renderChat(el);
+}
+
+function toggleSb(){document.getElementById('sb').classList.toggle('open')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// Render markdown content to HTML — handles code blocks, bold, links, images, lists, etc.
+function renderMd(text){
+  if(!text) return '';
+  let s=String(text);
+  // Detect image URLs/patterns and convert to <img> before markdown parsing
+  // 1. Markdown images: ![alt](url)
+  // 2. MEDIA: prefix paths
+  // 3. Bare image URLs (jpg/png/gif/webp/svg)
+  // marked handles ![alt](url) natively, so let it do that
+  // Handle MEDIA:/path — convert to local file reference
+  s=s.replace(/MEDIA:([^\s\n]+)/g,(m,p)=>`![attachment](file://${p})`);
+  try{
+    return marked.parse(s);
+  }catch(e){
+    return esc(s);
+  }
+}
+
+// Build a message bubble — markdown for assistant, plain for user
+function msgBubble(content,isUser){
+  if(isUser){
+    return `<div class="msg-b">${esc(content)}</div>`;
+  }
+  return `<div class="msg-b md-body">${renderMd(content)}</div>`;
+}
+
+// ── TASK HELPERS ──
+function taskRow(t){return`<div class="trow" onclick="openT('${t.id}')"><div class="tc ${t.status}" onclick="event.stopPropagation();cycleS('${t.id}')">${t.status==='done'?'✓':t.status==='in_progress'?'◐':t.status==='blocked'?'✕':''}</div><span class="tt ${t.status==='done'?'done':''}">${esc(t.title)}</span><span class="tp p${t.priority}">P${t.priority}</span></div>`}
+function phaseBody(p){return`<div class="phase-body">${p.tasks.length?p.tasks.map(t=>taskRow(t)).join(''):'<p style="color:var(--text3);padding:10px 16px;font-size:12px">No tasks</p>'}</div>`}
+function togglePhase(el){el.classList.toggle('open')}
+
+// ── HOME ──
+function renderHome(el){
+  const s=D.stats;const h=new Date().getHours();const g=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  el.innerHTML=`<div>
+    <h2 style="font-size:22px;font-weight:300;margin-bottom:2px">${g} ✦</h2>
+    <p style="color:var(--text3);margin-bottom:18px;font-size:13px">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</p>
+    <div class="stats">
+      <div class="sc"><div class="sc-label">Total</div><div class="sc-val">${s.total}</div></div>
+      <div class="sc"><div class="sc-label">Done</div><div class="sc-val" style="color:var(--green)">${s.done}</div><div class="sc-sub">${s.percent}%</div></div>
+      <div class="sc"><div class="sc-label">In Progress</div><div class="sc-val" style="color:var(--blue)">${s.in_progress}</div></div>
+      <div class="sc"><div class="sc-label">Blocked</div><div class="sc-val" style="color:var(--red)">${s.blocked}</div></div>
+    </div>
+    <div style="margin-bottom:18px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:var(--text2)">Overall Progress</span><span style="font-size:12px;color:var(--gold);font-weight:600">${s.percent}%</span></div><div class="prog-wrap"><div class="prog-fill" style="width:${s.percent}%"></div></div></div>
+    <h3 style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Phases Overview</h3>
+    ${D.phases.map((p,i)=>{
+      const pct=p.taskCount?Math.round(p.doneCount/p.taskCount*100):0;
+      return`<div class="phase"><div class="phase-h" onclick="togglePhase(this.parentElement)"><div class="phase-info"><span class="phase-emoji">${['🏗️','🛍️','🎨','💳','🚀'][i]}</span><h3>${esc(p.title)}</h3></div><div class="phase-meta"><span class="phase-cnt">${p.doneCount}/${p.taskCount}</span><div class="phase-bar"><div class="phase-bar-f" style="width:${pct}%"></div></div></div><span class="phase-chev">▼</span></div>${phaseBody(p)}</div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ── TASKS ──
+let taskFilter='all';
+function renderTasks(el){
+  const all=D.phases.flatMap(p=>p.tasks);
+  const counts={todo:0,in_progress:0,done:0,blocked:0};
+  all.forEach(t=>counts[t.status]=(counts[t.status]||0)+1);
+  el.innerHTML=`<div>
+    <div class="ftabs">
+      <div class="ftab ${taskFilter==='all'?'on':''}" onclick="taskFilter='all';filterTasks()">All (${all.length})</div>
+      ${Object.entries(counts).map(([k,v])=>`<div class="ftab ${taskFilter===k?'on':''}" onclick="taskFilter='${k}';filterTasks()">${STATUS_LABELS[k]} (${v})</div>`).join('')}
+    </div>
+    <div id="tl"></div></div>`;
+  filterTasks();
+}
+function filterTasks(){
+  const all=D.phases.flatMap(p=>p.tasks);
+  const ts=taskFilter==='all'?all:all.filter(t=>t.status===taskFilter);
+  const el=document.getElementById('tl');if(!el)return;
+  el.innerHTML=ts.map(t=>taskRow(t)).join('');
+  if(!ts.length)el.innerHTML='<p style="color:var(--text3);text-align:center;padding:40px 0">No tasks</p>';
+}
+async function cycleS(id){
+  const all=D.phases.flatMap(p=>p.tasks);const t=all.find(x=>x.id===id);if(!t)return;
+  const ns=STATUS_CYCLE[(STATUS_CYCLE.indexOf(t.status)+1)%STATUS_CYCLE.length];
+  await api(`/api/tasks/${id}`,{method:'PATCH',body:JSON.stringify({status:ns})});
+  await refresh();showView(V);
+}
+async function openT(id){
+  const t=D.phases.flatMap(p=>p.tasks).find(x=>x.id===id);if(!t)return;MT=t;
+  document.getElementById('mt').textContent=t.title;
+  document.getElementById('mn').value=t.notes||'';
+  document.getElementById('mp').value=t.priority;
+  drawStatusBtns(t.status);
+  document.getElementById('modal').classList.add('open');
+}
+function drawStatusBtns(s){document.getElementById('ms').innerHTML=['todo','in_progress','done','blocked'].map(x=>`<button class="sbtn ${x===s?'on '+x:x}" onclick="pickS('${x}')">${STATUS_LABELS[x]}</button>`).join('')}
+function pickS(s){drawStatusBtns(s)}
+async function closeM(){
+  document.getElementById('modal').classList.remove('open');
+  if(!MT)return;
+  const activeS=document.querySelector('.sbtn.on');
+  const newStatus=activeS?Object.keys(STATUS_LABELS).find(k=>STATUS_LABELS[k]===activeS.textContent.trim()):MT.status;
+  await api(`/api/tasks/${MT.id}`,{method:'PATCH',body:JSON.stringify({status:newStatus||MT.status,notes:document.getElementById('mn').value,priority:+document.getElementById('mp').value})});
+  MT=null;await refresh();
+}
+
+// ── PHASES ──
+function renderPhases(el){
+  const em=['🏗️','🛍️','🎨','💳','🚀'];
+  el.innerHTML=D.phases.map((p,i)=>{
+    const pct=p.taskCount?Math.round(p.doneCount/p.taskCount*100):0;
+    return`<div class="phase"><div class="phase-h" onclick="togglePhase(this.parentElement)"><div class="phase-info"><span class="phase-emoji">${em[i]}</span><h3>${esc(p.title)}</h3></div><div class="phase-meta"><span class="phase-cnt">${p.doneCount}/${p.taskCount} · ${pct}%</span><div class="phase-bar"><div class="phase-bar-f" style="width:${pct}%"></div></div></div><span class="phase-chev">▼</span></div>${phaseBody(p)}</div>`;
+  }).join('');
+}
+
+// ── SCRUM ──
+async function renderScrum(el){
+  const r=await api('/api/scrum');
+  el.innerHTML=`<div>
+    <div class="burn"><h3>Burndown — Phase Completion</h3><div class="burn-chart">${r.phases.map((p,i)=>{
+      const fillH=p.total?Math.round(p.done/p.total*100):0;
+      return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:100px;background:var(--bg3);border-radius:4px 4px 0 0;overflow:hidden"><div style="height:${fillH}%;background:var(--gold);transition:height .3s"></div></div><div style="font-size:10px;color:var(--text3)">P${i+1}</div><div style="font-size:11px;color:var(--gold);font-weight:600">${p.done}/${p.total}</div></div>`;
+    }).join('')}</div></div>
+    <div class="burn"><h3>Velocity by Sprint</h3><table class="vel-table"><tr><th>Sprint</th><th>Done</th><th>Total</th><th>%</th><th style="width:40%"></th></tr>${r.velocity.map(v=>`<tr><td style="font-weight:500">${v.sprint}</td><td style="color:var(--green)">${v.done}</td><td>${v.total}</td><td>${v.total?Math.round(v.done/v.total*100):0}%</td><td><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${v.total?Math.round(v.done/v.total*100):0}%;background:var(--gold);border-radius:3px"></div></div></td></tr>`).join('')}</table></div>
+    <div class="burn"><h3>Completion Forecast</h3><p style="font-size:13px;color:var(--text2);margin-top:8px">Based on current velocity: <b style="color:var(--gold)">${D.stats.done}</b> of <b>${D.stats.total}</b> tasks done (${D.stats.percent}%)</p><div style="margin-top:12px"><div class="prog-wrap" style="height:10px"><div class="prog-fill" style="width:${D.stats.percent}%"></div></div></div></div>
+  </div>`;
+}
+
+// ── CONVERSATIONS ──
+let convoPage=0,convoQ='',favSet=new Set(),showFavOnly=false;
+async function loadFavs(){
+  try{const r=await api('/api/favourites');favSet=new Set(r.favourites||[])}catch(e){}
+}
+async function toggleFav(title){
+  if(favSet.has(title)){
+    await api('/api/favourites',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({title})});
+    favSet.delete(title);
+  } else {
+    await api('/api/favourites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title})});
+    favSet.add(title);
+  }
+}
+async function renderSessions(el){
+  document.getElementById('th').textContent='Conversations';
+  el.innerHTML='<p style="color:var(--text3);padding:20px">Loading conversations...</p>';
+  await loadFavs();
+  const r=await api(`/api/conversations?limit=30&offset=${convoPage*30}${convoQ?'&q='+encodeURIComponent(convoQ):''}`);
+  const all=r.conversations||[];
+  const filtered=showFavOnly?all.filter(c=>favSet.has(c.title)):all;
+  const totalPages=Math.ceil(r.total/30);
+  el.innerHTML=`<div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input class="sess-search" style="flex:1" placeholder="Search conversations..." value="${esc(convoQ)}" onkeydown="if(event.key==='Enter'){convoQ=this.value;convoPage=0;renderSessions(document.getElementById('view'))}">
+      <button class="sb-item" style="padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;background:${showFavOnly?'var(--gold-dim)':'var(--bg3)'};color:${showFavOnly?'var(--gold)':'var(--text3)'};border:1px solid ${showFavOnly?'var(--gold)':'transparent'}" onclick="showFavOnly=!showFavOnly;renderSessions(document.getElementById('view'))">★ Favourites</button>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">${showFavOnly?filtered.length+' favourites':r.total+' conversations'}${convoQ?' matching "'+esc(convoQ)+'"':''}</p>
+    <div id="convos">${filtered.map(c=>renderConvoCard(c)).join('')}</div>
+    ${!showFavOnly?`<div class="convo-pager">
+      <button ${convoPage===0?'disabled':''} onclick="convoPage--;renderSessions(document.getElementById('view'))">← Prev</button>
+      <span style="font-size:12px;color:var(--text3);align-self:center">Page ${convoPage+1} / ${totalPages||1}</span>
+      <button ${convoPage>=totalPages-1?'disabled':''} onclick="convoPage++;renderSessions(document.getElementById('view'))">Next →</button>
+    </div>`:''}
+  </div>`;
+}
+function renderConvoCard(c){
+  const srcIcon=c.sources.includes('telegram')?'💬':c.sources.includes('cli')?'⌨️':c.sources.includes('cron')?'⏰':'📨';
+  const isFav=favSet.has(c.title);
+  return`<div class="convo">
+    <div class="convo-h" onclick="go('conversation','${encodeURIComponent(c.title)}')">
+      <div class="convo-av">${srcIcon}</div>
+      <div class="convo-body">
+        <div class="convo-title">${esc(c.title)}</div>
+        <div class="convo-sub"><span>${c.session_count} session${c.session_count!==1?'s':''}</span><span>·</span><span>${c.total_messages} msgs</span></div>
+      </div>
+      ${c.session_count>1?`<div class="convo-badge">${c.session_count}</div>`:''}
+      <span class="convo-time">${c.last_active}</span>
+    </div>
+    <div style="position:absolute;top:8px;right:8px;font-size:16px;cursor:pointer;opacity:${isFav?1:0.3};transition:opacity .15s" onclick="event.stopPropagation();toggleFav('${esc(c.title.replace(/'/g,"\\'"))}').then(()=>renderSessions(document.getElementById('view')))">${isFav?'★':'☆'}</div>
+  </div>`;
+}
+
+// ── CONVERSATION VIEW (merged messages from all sessions + resume chat + SSE live) ──
+let activeConvoId = null;
+let lastMsgId = 0;
+let liveSource = null;
+async function renderConversation(el,encodedTitle){
+  if(!encodedTitle)return el.innerHTML='<p style="color:var(--text3)">No conversation</p>';
+  const title=decodeURIComponent(encodedTitle);
+  activeConvoId=title;
+  // Close previous SSE connection
+  if(liveSource){liveSource.close();liveSource=null}
+  document.getElementById('th').textContent=title;
+  el.style.padding='0';
+  el.innerHTML='<p style="color:var(--text3);padding:20px">Loading conversation...</p>';
+  const r=await api(`/api/conversation/${encodeURIComponent(title)}`);
+  if(r.error)return el.innerHTML=`<p style="color:var(--red)">${r.error}</p>`;
+
+  const msgs=r.messages||[];
+  lastMsgId=0;
+  let lastSessId=null;
+  let bodyHtml='';
+  for(const m of msgs){
+    if(m.id && m.id>lastMsgId) lastMsgId=m.id;
+    if(m.session_id && m.session_id!==lastSessId){
+      if(lastSessId!==null){
+        const sess=r.sessions.find(s=>s.id===m.session_id);
+        if(sess) bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px"><div style="flex:1;height:1px;background:var(--glass)"></div><span style="font-size:10px;color:var(--text3);white-space:nowrap">${esc(sess.title)}</span><div style="flex:1;height:1px;background:var(--glass)"></div></div>`;
+      }
+      lastSessId=m.session_id;
+    }
+    const isUser=m.role==='user';
+    const toolBadges=(m.tools&&m.tools.length)?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${m.tools.map(t=>`<span style="font-size:10px;padding:2px 6px;background:rgba(192,132,252,0.1);color:var(--purple);border-radius:4px">⚙ ${esc(t.name)}</span>`).join('')}</div>`:'';
+    bodyHtml+=`<div class="msg ${isUser?'msg-u':'msg-a'}" data-mid="${m.id||0}"><div class="msg-role">${isUser?'You':'Hermes'}${m.timestamp?' · '+m.timestamp:''}</div>${toolBadges}${msgBubble(m.content,isUser)}</div>`;
+  }
+
+  const isFav=favSet.has(title);
+  el.innerHTML=`<div class="chat-wrap">
+    <div class="chat-offline" id="co" style="${hermesOnline?'display:none':'display:block'}">⚠️ Hermes API offline</div>
+    <div style="padding:12px 20px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="sess-back" onclick="closeConvo();go('sessions')">← Back</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:18px;cursor:pointer;opacity:${isFav?1:0.3};transition:opacity .15s" onclick="toggleConvoFav('${esc(title.replace(/'/g,"\\'"))}')">${isFav?'★':'☆'}</span>
+      <span id="live-dot" style="font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></span>Live</span>
+    </div></div>
+    <div style="margin-bottom:12px"><h3 style="font-size:15px">${esc(r.title)}</h3><p style="font-size:12px;color:var(--text3);margin-top:4px">${r.session_count} sessions · ${msgs.length} turns</p></div></div>
+    <div class="chat-msgs" id="cm" style="flex:1;overflow-y:auto;padding:0 20px">
+      ${bodyHtml}
+      ${msgs.length===0?'<p style="color:var(--text3);text-align:center;padding:40px">No messages yet</p>':''}
+    </div>
+    <div class="chat-typing" id="ct" style="display:none">Hermes is thinking...</div>
+    <div class="chat-input-area">
+      <textarea class="chat-in" id="ci" placeholder="Continue this conversation..." rows="1"></textarea>
+      <button class="chat-send" onclick="sendConvoMsg()">Send</button>
+    </div>
+  </div>`;
+
+  // Scroll to bottom
+  const cm=document.getElementById('cm');
+  if(cm) cm.scrollTop=cm.scrollHeight;
+
+  // Setup input
+  const ci=document.getElementById('ci');
+  ci.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'});
+  ci.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendConvoMsg()}});
+
+  // Open SSE live connection — OS filesystem events push new messages in real-time
+  liveSource=new EventSource(`/api/conversation-live/${encodeURIComponent(title)}?after=${lastMsgId}`);
+  liveSource.addEventListener('connected',()=>console.log('[SSE] Connected to',title));
+  liveSource.addEventListener('messages',(e)=>{
+    const data=JSON.parse(e.data);
+    if(!data.messages||!data.messages.length)return;
+    const cm=document.getElementById('cm');
+    if(!cm)return;
+    const nearBottom=cm.scrollHeight-cm.scrollTop-cm.clientHeight<200;
+    for(const m of data.messages){
+      if(m.id && m.id>lastMsgId) lastMsgId=m.id;
+      const isUser=m.role==='user';
+      const toolBadges=(m.tools&&m.tools.length)?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${m.tools.map(t=>`<span style="font-size:10px;padding:2px 6px;background:rgba(192,132,252,0.1);color:var(--purple);border-radius:4px">⚙ ${esc(t.name)}</span>`).join('')}</div>`:'';
+      cm.innerHTML+=`<div class="msg ${isUser?'msg-u':'msg-a'}" data-mid="${m.id||0}"><div class="msg-role">${isUser?'You':'Hermes'}${m.timestamp?' · '+m.timestamp:''}</div>${toolBadges}${msgBubble(m.content,isUser)}</div>`;
+    }
+    if(nearBottom) cm.scrollTop=cm.scrollHeight;
+  });
+  liveSource.onerror=()=>console.log('[SSE] Connection lost, browser will auto-reconnect');
+}
+function closeConvo(){if(liveSource){liveSource.close();liveSource=null}}
+
+async function toggleConvoFav(title){
+  await toggleFav(title);
+  // Re-render to update star
+  if(activeConvoId) renderConversation(document.getElementById('view'),encodeURIComponent(activeConvoId));
+}
+
+// ── CRON JOBS VIEW ──
+async function renderCron(el){
+  document.getElementById('th').textContent='Cron Jobs';
+  el.innerHTML='<p style="color:var(--text3);padding:20px">Loading cron jobs...</p>';
+  const r=await api('/api/cron-jobs?limit=100');
+  if(r.error)return el.innerHTML=`<p style="color:var(--red)">${r.error}</p>`;
+  el.innerHTML=`<div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px">${r.total} cron job runs</p>
+    ${r.jobs.map(j=>`<div class="convo" style="margin-bottom:10px">
+      <div class="convo-h" onclick="toggleConvo(this.parentElement)">
+        <div class="convo-av" style="font-size:14px">⏰</div>
+        <div class="convo-body">
+          <div class="convo-title">${esc(j.name)}</div>
+          <div class="convo-sub"><span>${j.runs.length} run${j.runs.length!==1?'s':''}</span></div>
+        </div>
+        ${j.runs.length>1?`<div class="convo-badge">${j.runs.length}</div>`:''}
+        <span class="convo-time">${j.runs[0]?.started_short||''}</span>
+        <span class="convo-chev">▼</span>
+      </div>
+      <div class="convo-sessions">${j.runs.map(r=>`<div class="csess" onclick="event.stopPropagation();go('session','${encodeURIComponent(r.id)}')"><div class="csess-dot cron"></div><span class="csess-title">${esc(r.title)}</span><span class="csess-meta">${r.started_short}${r.message_count?' · '+r.message_count+' msgs':''}</span></div>`).join('')}</div>
+    </div>`).join('')}
+  </div>`;
+}
+function toggleConvo(el){el.classList.toggle('open')}
+
+// ── SESSION DETAIL (grouped turns, tool badges, real title) ──
+async function renderSession(el,sid){
+  if(!sid)return el.innerHTML='<p style="color:var(--text3)">No session</p>';
+  const id=decodeURIComponent(sid);
+  el.innerHTML='<p style="color:var(--text3);padding:20px">Loading...</p>';
+  const r=await api(`/api/sessions/${encodeURIComponent(id)}?limit=2000`);
+  if(r.error)return el.innerHTML=`<p style="color:var(--red)">${r.error}</p>`;
+
+  // Set real title in topbar
+  SD=r.session;
+  document.getElementById('th').textContent=SD.title||'Chat Session';
+
+  const msgs=r.messages||[];
+  el.innerHTML=`<div>
+    <div class="sess-back" onclick="go('sessions')">← Back to history</div>
+    <div style="margin-bottom:16px"><h3 style="font-size:15px">${esc(SD.title)}</h3><p style="font-size:12px;color:var(--text3);margin-top:4px">${SD.message_count} raw messages · ${msgs.length} turns · ${SD.started_at?new Date(SD.started_at).toLocaleString():'N/A'}</p></div>
+    ${msgs.map(m=>{
+      const isUser=m.role==='user';
+      const toolBadges=(m.tools&&m.tools.length)?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${m.tools.map(t=>`<span style="font-size:10px;padding:2px 6px;background:rgba(192,132,252,0.1);color:var(--purple);border-radius:4px">⚙ ${esc(t.name)}</span>`).join('')}</div>`:'';
+      return`<div class="msg ${isUser?'msg-u':'msg-a'}"><div class="msg-role">${isUser?'You':'Hermes'}</div>${toolBadges}${msgBubble(m.content,isUser)}</div>`;
+    }).join('')}
+    ${msgs.length===0?'<p style="color:var(--text3);text-align:center;padding:40px">No displayable messages</p>':''}
+  </div>`;
+}
+
+// ── CHAT (streaming + slash commands) ──
+function renderChat(el){
+  document.getElementById('th').textContent='New Chat';
+  el.innerHTML=`<div class="chat-wrap">
+    <div class="chat-offline" id="co" style="${hermesOnline?'display:none':'display:block'}">⚠️ Hermes API offline — restart gateway to enable chat</div>
+    <div class="chat-msgs" id="cm"></div>
+    <div class="chat-typing" id="ct" style="display:none">Hermes is thinking...</div>
+    <div id="slash-box" style="display:none;padding:0 20px 4px;max-height:200px;overflow-y:auto"></div>
+    <div class="chat-input-area">
+      <textarea class="chat-in" id="ci" placeholder="Message Hermes... (type / for commands)" rows="1"></textarea>
+      <button class="chat-send" onclick="sendMsg()">Send</button>
+    </div>
+  </div>`;
+  const ci=document.getElementById('ci');
+  ci.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';checkSlash(this.value)});
+  ci.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(slashOpen){e.preventDefault();applySlash()}else sendMsg()}
+    if(e.key==='Escape')closeSlash();
+    if(e.key==='ArrowDown'&&slashOpen){e.preventDefault();navSlash(1)}
+    if(e.key==='ArrowUp'&&slashOpen){e.preventDefault();navSlash(-1)}
+  });
+  renderChatMsgs();
+}
+function renderChatMsgs(){
+  const cm=document.getElementById('cm');if(!cm)return;
+  cm.innerHTML=chatMsgs.map(m=>{const isU=m.role==='user';return`<div class="chat-m ${isU?'user':'asst'}"><div class="chat-av">${isU?'B':'H'}</div><div class="chat-bb ${isU?'':'md-body'}">${isU?esc(m.content):renderMd(m.content)}</div></div>`}).join('');
+  cm.scrollTop=cm.scrollHeight;
+}
+let slashIdx=0;
+function checkSlash(v){
+  const box=document.getElementById('slash-box');if(!box)return;
+  if(!v.startsWith('/')){box.style.display='none';slashOpen=false;return}
+  const q=v.toLowerCase().split(' ')[0];
+  const matches=SLASH_COMMANDS.filter(c=>c.cmd.startsWith(q));
+  if(!matches.length){box.style.display='none';slashOpen=false;return}
+  slashOpen=true;slashIdx=0;
+  box.style.display='block';
+  box.innerHTML=matches.map((c,i)=>`<div class="slash-item ${i===0?'sel':''}" onclick="pickSlash('${c.cmd}')" style="padding:6px 10px;cursor:pointer;border-radius:4px;display:flex;justify-content:space-between;align-items:center;${i===0?'background:var(--gold-dim)':''}"><span style="font-size:12px;color:var(--gold);font-weight:600">${c.cmd}${c.args?' <span style="color:var(--text3);font-weight:400">'+c.args+'</span>':''}</span><span style="font-size:11px;color:var(--text3)">${c.desc}</span></div>`).join('');
+}
+function closeSlash(){const b=document.getElementById('slash-box');if(b)b.style.display='none';slashOpen=false}
+function navSlash(dir){
+  const items=document.querySelectorAll('.slash-item');if(!items.length)return;
+  items[slashIdx]&&items[slashIdx].style.removeProperty('background');
+  slashIdx=Math.max(0,Math.min(items.length-1,slashIdx+dir));
+  items[slashIdx]&&(items[slashIdx].style.background='var(--gold-dim)');
+  items[slashIdx]&&items[slashIdx].scrollIntoView({block:'nearest'});
+}
+function pickSlash(cmd){const ci=document.getElementById('ci');if(ci){ci.value=cmd+' ';ci.focus();closeSlash()}}
+function applySlash(){const ci=document.getElementById('ci');if(ci)sendMsg()}
+
+let chatConvoId=null;
+
+async function sendMsg(){
+  if(chatBusy)return;
+  const inp=document.getElementById('ci');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';chatBusy=true;closeSlash();
+  if(!chatConvoId)chatConvoId='lapak-pm-'+Date.now().toString(36);
+  chatMsgs.push({role:'user',content:msg});
+  const cm=document.getElementById('cm');
+
+  cm.innerHTML+=`<div class="chat-m user"><div class="chat-av">B</div><div class="chat-bb">${esc(msg)}</div></div>`;
+  const asstId='asst-'+Date.now();
+  cm.innerHTML+=`<div class="chat-m asst" id="${asstId}"><div class="chat-av">H</div><div class="chat-bb md-body" id="${asstId}-bb">▍</div></div>`;
+  cm.scrollTop=cm.scrollHeight;
+  document.getElementById('ct').style.display='block';
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({ message: msg, conversation_id: chatConvoId }),
+    });
+
+    document.getElementById('ct').style.display = 'none';
+    const bb = document.getElementById(asstId + '-bb');
+    let fullReply = '';
+
+    if (resp.headers.get('Content-Type')?.includes('text/event-stream')) {
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value, {stream: true});
+        const lines = text.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+            try {
+              const d = JSON.parse(line.slice(6));
+              const delta = d.choices?.[0]?.delta?.content;
+              if (delta) { fullReply += delta; if(bb) bb.innerHTML = renderMd(fullReply) + '<span style="color:var(--gold);opacity:.6">▍</span>'; }
+            } catch {}
+          }
+        }
+        cm.scrollTop = cm.scrollHeight;
+      }
+      if(bb){bb.innerHTML=renderMd(fullReply)||'<span style="color:var(--text3)">No response</span>';bb.classList.add('md-body');}
+    } else {
+      const r = await resp.json();
+      fullReply = r.reply || r.error || 'No response';
+      if(bb){bb.innerHTML=renderMd(fullReply);bb.classList.add('md-body');}
+    }
+    chatMsgs.push({role:'assistant',content:fullReply});
+    // New Chat messages get absorbed into the most recent Hermes conversation.
+    // Navigate to that conversation so user can resume/favourite it.
+    if(fullReply){
+      try{
+        const cr=await api('/api/conversations?limit=1');
+        const latest=cr.conversations?.[0];
+        if(latest) go('conversation', encodeURIComponent(latest.title));
+      }catch{}
+    }
+  } catch(err) {
+    document.getElementById('ct').style.display='none';
+    const bb=document.getElementById(asstId+'-bb');
+    if(bb)bb.textContent='Connection error: '+err.message;
+    chatMsgs.push({role:'assistant',content:'Error: '+err.message});
+  }
+  chatBusy=false;
+  cm.scrollTop=cm.scrollHeight;
+}
+
+// ── SEND MESSAGE IN CONVERSATION (resume with streaming) ──
+let convoBusy=false;
+async function sendConvoMsg(){
+  if(convoBusy)return;
+  const inp=document.getElementById('ci');
+  if(!inp)return;
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  convoBusy=true;
+
+  const cm=document.getElementById('cm');
+  if(!cm)return;
+
+  // Add user message
+  cm.innerHTML+=`<div class="chat-m user" style="display:flex;gap:10px;padding:10px 0"><div class="chat-av" style="font-size:11px;font-weight:700;color:var(--gold);min-width:20px">B</div><div style="flex:1;font-size:13px;color:var(--text);white-space:pre-wrap">${esc(msg)}</div></div>`;
+
+  // Streaming placeholder
+  const asstId='asst-'+Date.now();
+  const streamEl=document.getElementById('cm-stream');
+  if(streamEl) streamEl.innerHTML=`<div class="chat-m asst" id="${asstId}" style="display:flex;gap:10px;padding:10px 0"><div class="chat-av" style="font-size:11px;font-weight:700;color:var(--gold);min-width:20px">H</div><div class="md-body" style="flex:1;font-size:13px;color:var(--text)" id="${asstId}-bb">▍</div></div>`;
+  cm.scrollTop=cm.scrollHeight;
+  const ct=document.getElementById('ct');if(ct)ct.style.display='block';
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({ message: msg, conversation_id: activeConvoId }),
+    });
+
+    if(ct)ct.style.display='none';
+    const bb=document.getElementById(asstId+'-bb');
+    let fullReply='';
+
+    if(resp.headers.get('Content-Type')?.includes('text/event-stream')){
+      const reader=resp.body.getReader();
+      const decoder=new TextDecoder();
+      while(true){
+        const {done,value}=await reader.read();
+        if(done)break;
+        const text=decoder.decode(value,{stream:true});
+        const lines=text.split('\n');
+        for(const line of lines){
+          if(line.startsWith('data: ')&&line!=='data: [DONE]'){
+            try{
+              const d=JSON.parse(line.slice(6));
+              const delta=d.choices?.[0]?.delta?.content;
+              if(delta){fullReply+=delta;if(bb)bb.innerHTML=renderMd(fullReply)+'<span style="color:var(--gold);opacity:.6">▍</span>';}
+            }catch{}
+          }
+        }
+        cm.scrollTop=cm.scrollHeight;
+      }
+      // Render final reply as markdown
+      if(bb){bb.innerHTML=renderMd(fullReply)||'<span style="color:var(--text3)">No response</span>';bb.classList.add('md-body');}
+    } else {
+      const r=await resp.json();
+      fullReply=r.reply||r.error||'No response';
+      if(bb){bb.innerHTML=renderMd(fullReply);bb.classList.add('md-body');}
+    }
+  } catch(err){
+    if(ct)ct.style.display='none';
+    const bb=document.getElementById(asstId+'-bb');
+    if(bb)bb.textContent='Connection error: '+err.message;
+  }
+  convoBusy=false;
+  cm.scrollTop=cm.scrollHeight;
+}
+
+init();
+</script>
+</body>
+</html>

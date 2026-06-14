@@ -1,0 +1,11 @@
+services:
+  scrumboy:
+    image: ghcr.io/markrai/scrumboy:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      - SCRUMBOY_MODE=full
+      - BIND_ADDR=:8080
+      - DATA_DIR=/data

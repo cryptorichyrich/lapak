@@ -1,0 +1,18 @@
+{
+  "id": "d9c8db191286f5d2",
+  "title": "What project is this? How many tasks total? What phase am I ...",
+  "created_at": 1781256436768,
+  "updated_at": 1781256455799,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What project is this? How many tasks total? What phase am I in?",
+      "ts": 1781256436768
+    },
+    {
+      "role": "assistant",
+      "content": "This is the **Lapak Platform** — Shopify for Indonesian UMKM.\n\n**Total tasks:** 99\n**Done:** 0 (0%)\n**Active:** None\n\n**Phases:**\n\n1. Foundation & Infrastructure — 0/19\n2. Storefront — Buyer-Facing Pages — 0/16\n3. Seller Studio — Editor + Management — 0/28\n4. Payments + Shipping + Domains — 0/16\n5. Platform Console + Marketing + Ship — 0/20\n\nYou haven't started yet. Phase 1 (Foundation & Infrastructure) is first — 19 tasks covering the base setup.\n\nWant to kick off Task 1?",
+      "ts": 1781256455799
+    }
+  ]
+}
