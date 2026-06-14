@@ -1,0 +1,42 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+        working-directory: api
+      - run: |
+          npm run build
+          npx wrangler deploy
+        working-directory: api
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          XENDIT_API_KEY: ${{ secrets.XENDIT_API_KEY }}
+          XENDIT_CALLBACK_TOKEN: ${{ secrets.XENDIT_CALLBACK_TOKEN }}
+          CONSOLE_ADMIN_KEY: ${{ secrets.CONSOLE_ADMIN_KEY }}
+      - run: npm ci
+        working-directory: storefront
+      - run: |
+          npm run build
+          # Patch ASSETS -> STATIC_ASSETS
+          sed -i 's/"binding":"ASSETS"/"binding":"STATIC_ASSETS"/g' dist/server/wrangler.json
+          npx wrangler pages deploy dist
+        working-directory: storefront
+        env:
+          PUBLIC_API_URL: https://lapak-api.fxwisdom1.workers.dev/api
+          PUBLIC_SUPABASE_URL: https://emopndwniprbmkwxqnrz.supabase.co
+          PUBLIC_SITE_URL: https://lapak.id
+          PUBLIC_PLATFORM_NAME: Lapak
