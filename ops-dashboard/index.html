@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beligih.id — Operations Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --gold:#c9a84c;--gold-light:#e0c878;--gold-dark:#a88a3a;
+    --bg:#08080a;--surface:#111114;--surface-2:#16161a;--surface-3:#1c1c22;
+    --border:#2a2a33;--border-light:#3a3a47;
+    --text:#f5f5f5;--text-muted:#a3a3a3;--text-subtle:#6b6b75;
+    --red:#ef4444;--green:#22c55e;--yellow:#eab308;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* Tabs */
+  .tab-bar{display:flex;gap:.5rem;padding:0 2rem;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto}
+  .tab{padding:.75rem 1.25rem;font-size:.85rem;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-pane{display:none}
+  .tab-pane.active{display:block}
+
+  /* Header */
+  .header{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+  .header-left{display:flex;align-items:center;gap:1rem}
+  .logo{font-size:1.5rem;font-weight:800;letter-spacing:-0.03em}
+  .logo span{color:var(--gold)}
+  .badge{padding:.25rem .6rem;border-radius:6px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .badge-live{background:rgba(34,197,94,.15);color:var(--green);display:flex;align-items:center;gap:.4rem}
+  .badge-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .header-right{display:flex;align-items:center;gap:1.5rem}
+  .clock{font-size:.85rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+
+  /* Layout */
+  .container{max-width:1600px;margin:0 auto;padding:1.5rem 2rem 4rem}
+  .grid-main{display:grid;grid-template-columns:1fr;gap:1.5rem}
+
+  /* Hero Score */
+  .hero-section{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;margin-bottom:1.5rem}
+  @media(max-width:768px){.hero-section{grid-template-columns:1fr}}
+  .score-gauge{background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:1.25rem;padding:2rem;text-align:center;position:relative;overflow:hidden}
+  .score-gauge::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .gauge-ring{width:160px;height:160px;margin:0 auto;position:relative}
+  .gauge-ring svg{transform:rotate(-90deg)}
+  .gauge-bg{stroke:var(--border);stroke-width:10;fill:none}
+  .gauge-fill{stroke:var(--gold);stroke-width:10;fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+  .gauge-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+  .gauge-value{font-size:2.5rem;font-weight:800;line-height:1}
+  .gauge-label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-top:.25rem}
+  .gauge-target{font-size:.8rem;color:var(--text-subtle);margin-top:.5rem}
+
+  /* Manifesto Card */
+  .manifesto-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:1.25rem;padding:2rem;display:flex;flex-direction:column;justify-content:center}
+  .manifesto-label{font-size:.7rem;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem}
+  .manifesto-vision{font-size:1.3rem;font-weight:700;line-height:1.4;margin-bottom:1rem}
+  .manifesto-mission{font-size:.9rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.5rem}
+  .values{display:flex;flex-wrap:wrap;gap:.5rem}
+  .value-chip{display:flex;align-items:center;gap:.4rem;padding:.4rem .8rem;background:var(--surface-3);border:1px solid var(--border);border-radius:.6rem;font-size:.75rem;font-weight:500}
+
+  /* Section Title */
+  .section-title{font-size:1.1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+  .section-title .count{font-size:.75rem;color:var(--text-subtle);background:var(--surface-3);padding:.15rem .5rem;border-radius:4px}
+
+  /* Goals Grid */
+  .goals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:1rem;margin-bottom:2rem}
+  .goal-card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;transition:border-color .2s,transform .2s}
+  .goal-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+  .goal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem}
+  .goal-title{font-size:.9rem;font-weight:600;line-height:1.3}
+  .goal-cat{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-subtle);margin-top:.2rem}
+  .goal-icon{font-size:1.3rem;line-height:1}
+  .progress-bar{height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin-bottom:.5rem}
+  .progress-fill{height:100%;border-radius:3px;transition:width .8s ease}
+  .progress-fill.up{background:linear-gradient(90deg,var(--gold-dark),var(--gold))}
+  .progress-fill.down{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
+  .goal-stats{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted)}
+  .goal-reward{font-size:.7rem;color:var(--gold);margin-top:.5rem;display:flex;align-items:center;gap:.3rem}
+  .goal-status{padding:.15rem .5rem;border-radius:4px;font-size:.65rem;font-weight:600;text-transform:uppercase}
+  .st-active{background:rgba(59,130,246,.15);color:var(--blue)}
+  .st-completed{background:rgba(234,179,8,.15);color:var(--yellow)}
+  .st-confirmed{background:rgba(34,197,94,.15);color:var(--green)}
+  .st-blocked{background:rgba(239,68,68,.15);color:var(--red)}
+  .dep-chain{font-size:.65rem;color:var(--text-subtle);margin-top:.5rem;font-family:'JetBrains Mono',monospace}
+  .goal-desc{font-size:.7rem;color:var(--text-muted);margin-top:.5rem;padding:.5rem;background:var(--surface-3);border-radius:.5rem;line-height:1.5;word-break:break-word}
+  .goal-desc a{color:var(--gold);text-decoration:underline}
+
+  /* Goal Action Buttons */
+  .goal-actions{display:flex;gap:.5rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--surface-2)}
+  .btn{padding:.4rem .8rem;border-radius:.5rem;font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface-3);color:var(--text);transition:all .15s;white-space:nowrap}
+  .btn:hover{border-color:var(--border-light)}
+  .btn-confirm{background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3)}
+  .btn-confirm:hover{background:rgba(34,197,94,.25)}
+  .btn-reject{background:rgba(239,68,68,.15);color:var(--red);border-color:rgba(239,68,68,.3)}
+  .btn-reject:hover{background:rgba(239,68,68,.25)}
+  .btn-review{background:rgba(168,85,247,.15);color:var(--purple);border-color:rgba(168,85,247,.3)}
+  .btn-review:hover{background:rgba(168,85,247,.25)}
+
+  /* Team Grid */
+  .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2rem}
+  .member-card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;position:relative;overflow:hidden}
+  .member-card.holiday{border-color:rgba(14,165,233,.3)}
+  .member-card.recall{border-color:rgba(239,68,68,.3);animation:redpulse 2s ease-in-out infinite}
+  @keyframes redpulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2)}50%{box-shadow:0 0 20px 4px rgba(239,68,68,.1)}}
+  .member-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+  .member-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--surface-3);flex-shrink:0}
+  .member-name{font-size:.9rem;font-weight:600}
+  .member-role{font-size:.7rem;color:var(--text-muted);text-transform:capitalize}
+  .member-status-dot{width:8px;height:8px;border-radius:50%;margin-left:auto}
+  .dot-active{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .dot-holiday{background:var(--blue)}
+  .dot-recall{background:var(--red);animation:pulse 1s ease-in-out infinite}
+  .member-goal{font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem;padding:.5rem;background:var(--surface-2);border-radius:.5rem;border-left:2px solid var(--gold)}
+  .member-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+  .stat{text-align:center;padding:.4rem;background:var(--surface-2);border-radius:.5rem}
+  .stat-val{font-size:1.1rem;font-weight:700}
+  .stat-label{font-size:.6rem;color:var(--text-subtle);text-transform:uppercase}
+  .member-holiday-info{font-size:.7rem;color:var(--blue);margin-top:.5rem;text-align:center}
+
+  /* Findings */
+  .findings-section{margin-bottom:2rem}
+  .findings-table{width:100%;border-collapse:collapse}
+  .findings-table th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-subtle);padding:.5rem;border-bottom:1px solid var(--border)}
+  .findings-table td{padding:.6rem .5rem;font-size:.8rem;border-bottom:1px solid var(--surface-2)}
+  .sev{padding:.15rem .5rem;border-radius:4px;font-size:.65rem;font-weight:600;text-transform:uppercase;white-space:nowrap}
+  .sev-critical{background:rgba(239,68,68,.2);color:var(--red)}
+  .sev-high{background:rgba(234,179,8,.2);color:var(--yellow)}
+  .sev-medium{background:rgba(59,130,246,.15);color:var(--blue)}
+  .sev-low{background:rgba(107,107,117,.2);color:var(--text-subtle)}
+  .sev-info{background:rgba(168,85,247,.15);color:var(--purple)}
+  .finding-title{font-weight:500;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* Schedule Timeline */
+  .schedule{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;margin-bottom:2rem}
+  .sched-item{min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:1rem;text-align:center;position:relative}
+  .sched-time{font-size:.8rem;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace}
+  .sched-icon{font-size:1.5rem;margin:.5rem 0}
+  .sched-name{font-size:.7rem;color:var(--text-muted)}
+  .sched-item.next{border-color:var(--gold);box-shadow:0 0 12px rgba(201,168,76,.15)}
+
+  /* Competitors */
+  .comp-filters{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+  .comp-filter{padding:.3rem .7rem;border-radius:.4rem;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--surface-3);border:1px solid var(--border);color:var(--text-muted);transition:all .15s}
+  .comp-filter.active{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1rem;margin-bottom:2rem}
+  .comp-card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;transition:border-color .2s}
+  .comp-card:hover{border-color:var(--border-light)}
+  .comp-card.threat-critical{border-left:3px solid var(--red)}
+  .comp-card.threat-high{border-left:3px solid var(--yellow)}
+  .comp-card.threat-medium{border-left:3px solid var(--blue)}
+  .comp-card.threat-low{border-left:3px solid var(--text-subtle)}
+  .comp-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem}
+  .comp-name{font-size:.95rem;font-weight:700}
+  .comp-url{font-size:.7rem;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-top:.15rem}
+  .comp-meta{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem}
+  .comp-tag{padding:.15rem .5rem;border-radius:4px;font-size:.6rem;font-weight:600;text-transform:uppercase}
+  .tag-country{background:var(--surface-3);color:var(--text-muted)}
+  .tag-type{background:rgba(6,182,212,.15);color:var(--cyan)}
+  .tag-threat-critical{background:rgba(239,68,68,.2);color:var(--red)}
+  .tag-threat-high{background:rgba(234,179,8,.2);color:var(--yellow)}
+  .tag-threat-medium{background:rgba(59,130,246,.15);color:var(--blue)}
+  .tag-threat-low{background:rgba(107,107,117,.2);color:var(--text-subtle)}
+  .comp-desc{font-size:.78rem;color:var(--text-muted);line-height:1.5;margin-bottom:.5rem}
+  .comp-price{font-size:.7rem;color:var(--gold);margin-bottom:.5rem}
+  .comp-features{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem}
+  .comp-feature{padding:.15rem .4rem;background:var(--surface-2);border-radius:3px;font-size:.6rem;color:var(--text-subtle)}
+  .comp-advantage{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:.5rem;padding:.5rem;font-size:.72rem;color:var(--green);line-height:1.4}
+  .comp-advantage-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem;color:rgba(34,197,94,.6)}
+  .comp-sw{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+  .comp-sw-item{font-size:.7rem;line-height:1.4}
+  .comp-sw-item strong{font-size:.6rem;text-transform:uppercase;display:block;margin-bottom:.15rem}
+  .comp-sw-strength strong{color:var(--green)}
+  .comp-sw-weakness strong{color:var(--red)}
+  .comp-sw-strength{color:var(--text-muted)}
+  .comp-sw-weakness{color:var(--text-muted)}
+
+  /* Reviews / Feedback */
+  .review-form{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem}
+  .review-form-title{font-size:.9rem;font-weight:700;margin-bottom:1rem}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+  @media(max-width:640px){.form-row{grid-template-columns:1fr}}
+  .form-group{margin-bottom:1rem}
+  .form-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-subtle);margin-bottom:.3rem;display:block}
+  .form-input,.form-select,.form-textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:.5rem;padding:.5rem .75rem;font-size:.85rem;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold)}
+  .form-textarea{min-height:80px;resize:vertical}
+  .star-rating{display:flex;gap:.25rem}
+  .star{font-size:1.5rem;cursor:pointer;color:var(--border-light);transition:color .15s}
+  .star.active,.star:hover,.star:hover~.star.was-active{color:var(--gold)}
+  .star.active{color:var(--gold)}
+  .btn-submit{background:var(--gold);color:var(--bg);border:none;padding:.6rem 1.5rem;border-radius:.5rem;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+  .btn-submit:hover{opacity:.85}
+  .btn-submit:disabled{opacity:.4;cursor:not-allowed}
+
+  .review-list{display:flex;flex-direction:column;gap:.75rem}
+  .review-card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:1rem}
+  .review-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+  .review-agent{font-size:.85rem;font-weight:600}
+  .review-stars{color:var(--gold);font-size:.9rem}
+  .review-feedback{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:.3rem}
+  .review-meta{font-size:.65rem;color:var(--text-subtle)}
+  .review-action{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:.4rem;padding:.3rem .5rem;font-size:.72rem;color:var(--red);margin-top:.3rem}
+  .review-status{padding:.15rem .5rem;border-radius:4px;font-size:.6rem;font-weight:600;text-transform:uppercase}
+  .rs-pending{background:rgba(234,179,8,.15);color:var(--yellow)}
+  .rs-acknowledged{background:rgba(59,130,246,.15);color:var(--blue)}
+  .rs-actioned{background:rgba(34,197,94,.15);color:var(--green)}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
+  .modal-overlay.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border-light);border-radius:1.25rem;padding:1.5rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+  .modal-title{font-size:1rem;font-weight:700;margin-bottom:1rem}
+  .modal-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+
+  /* Toast */
+  .toast{position:fixed;bottom:4rem;right:1rem;background:var(--surface);border:1px solid var(--border-light);border-radius:.75rem;padding:.75rem 1.25rem;font-size:.85rem;z-index:300;transform:translateY(100px);opacity:0;transition:all .3s}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(34,197,94,.4)}
+  .toast.error{border-color:rgba(239,68,68,.4)}
+
+  /* Loading */
+  .loading{display:flex;align-items:center;justify-content:center;min-height:60vh}
+  .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Refresh bar */
+  .refresh-bar{position:fixed;bottom:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:.5rem 1rem;font-size:.7rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem;z-index:50}
+  .refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+
+  /* Holiday banner */
+  .holiday-banner{background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(168,85,247,.1));border:1px solid rgba(14,165,233,.2);border-radius:1rem;padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+  .holiday-banner-icon{font-size:2rem}
+  .holiday-banner-text{font-size:.85rem;color:var(--text-muted)}
+  .holiday-banner-text strong{color:var(--text)}
+
+  /* Responsive */
+  @media(max-width:640px){
+    .container{padding:1rem}
+    .header{padding:.75rem 1rem}
+    .goals-grid,.team-grid,.comp-grid{grid-template-columns:1fr}
+    .findings-table{font-size:.7rem}
+    .finding-title{max-width:150px}
+    .tab-bar{padding:0 1rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <div class="tab active" data-tab="ops">🎯 Operations</div>
+  <div class="tab" data-tab="competitors">⚔️ Competitors</div>
+  <div class="tab" data-tab="reviews">💬 Feedback & Reviews</div>
+</div>
+
+<div id="app">
+  <div class="loading"><div class="spinner"></div></div>
+</div>
+
+<div class="refresh-bar">
+  <div class="refresh-dot"></div>
+  <span id="refresh-text">Live — updates every 30s</span>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Config =====
+const SUPABASE_URL = 'https://emopndwniprbmkwxqnrz.supabase.co/rest/v1';
+const ANON_KEY = 'sb_publishable__WnKJtNinSAAm9OBFlJEpg_bzbamXS5';
+const headers = { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+
+// ===== Helpers =====
+async function fetchTable(table, select = '*', filters = '', order = '', limit = '') {
+  let url = SUPABASE_URL + '/' + table + '?select=' + encodeURIComponent(select);
+  if (filters) url += '&' + filters.split('&').map(f => {
+    const [k, v] = f.split('=');
+    return k + '=' + encodeURIComponent(v);
+  }).join('&');
+  if (order) url += '&order=' + order;
+  if (limit) url += '&limit=' + limit;
+  const res = await fetch(url, { headers });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+async function patchRow(table, id, data) {
+  const res = await fetch(SUPABASE_URL + '/' + table + '?id=eq.' + id, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function insertRow(table, data) {
+  const res = await fetch(SUPABASE_URL + '/' + table, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    return { error: err };
+  }
+  return res.json();
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 3000);
+}
+
+function progressPercent(goal) {
+  if (goal.direction === 'down') {
+    if (goal.target_value === 0) return goal.current_value === 0 ? 100 : 0;
+    return Math.max(0, Math.min(100, 100 - (goal.current_value / Math.max(goal.target_value, 1)) * 100));
+  }
+  if (!goal.target_value || goal.target_value === 0) return 0;
+  return Math.min(100, (goal.current_value / goal.target_value) * 100);
+}
+
+function progressBar(percent, direction) {
+  const cls = direction === 'down' ? 'down' : 'up';
+  return '<div class="progress-bar"><div class="progress-fill ' + cls + '" style="width:' + Math.max(2, percent) + '%"></div></div>';
+}
+
+function goalIcon(category) {
+  const icons = { product: '💳', quality: '💎', growth: '🚀', infra: '🏗️', culture: '🌟' };
+  return icons[category] || '🎯';
+}
+
+// ===== Goal Actions =====
+async function confirmGoal(id, title) {
+  showModal(
+    '<div class="modal-title">✅ Confirm Goal Complete</div>' +
+    '<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">Confirming: <strong style="color:var(--text)">' + title + '</strong></p>' +
+    '<p style="font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem">The assigned agent(s) will be granted their holiday reward.</p>' +
+    '<div class="modal-actions">' +
+      '<button class="btn" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-confirm" onclick="doConfirmGoal(\'' + id + '\')">✅ Confirm</button>' +
+    '</div>'
+  );
+}
+
+async function doConfirmGoal(id) {
+  const ok = await patchRow('company_goals', id, {
+    status: 'confirmed',
+    confirmed_by: 'Bio (CEO)',
+    confirmed_at: new Date().toISOString()
+  });
+  closeModal();
+  if (ok) { showToast('✅ Goal confirmed! Agent earned holiday.', 'success'); loadAndRender(); }
+  else showToast('❌ Failed to confirm', 'error');
+}
+
+async function rejectGoal(id, title) {
+  const goals = window._goals || [];
+  const goal = goals.find(g => g.id === id);
+  showModal(
+    '<div class="modal-title">❌ Reject & Critique Work</div>' +
+    '<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">Rejecting: <strong style="color:var(--text)">' + title + '</strong></p>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Rating</label>' +
+      '<div class="star-rating" id="reject-stars">' +
+        [1,2,3,4,5].map(n => '<span class="star" data-val="' + n + '" onclick="setRating(' + n + ')">★</span>').join('') +
+      '</div>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Critique / What needs to improve</label>' +
+      '<textarea class="form-textarea" id="reject-feedback" placeholder="Be specific about what is wrong or needs improvement..."></textarea>' +
+    '</div>' +
+    '<div class="form-group">' +
+      '<label class="form-label">Action Required (specific steps)</label>' +
+      '<textarea class="form-textarea" id="reject-action" placeholder="What exactly must the agent do to fix this?"></textarea>' +
+    '</div>' +
+    '<div class="modal-actions">' +
+      '<button class="btn" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-reject" onclick="doRejectGoal(\'' + id + '\')">❌ Reject & Send Feedback</button>' +
+    '</div>'
+  );
+}
+
+let selectedRating = 0;
+function setRating(val) {
+  selectedRating = val;
+  document.querySelectorAll('#reject-stars .star').forEach(s => {
+    s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+  });
+}
+
+async function doRejectGoal(id) {
+  const feedback = document.getElementById('reject-feedback').value.trim();
+  const action = document.getElementById('reject-action').value.trim();
+  if (!feedback) { showToast('Please provide critique', 'error'); return; }
+
+  const goals = window._goals || [];
+  const goal = goals.find(g => g.id === id);
+
+  // Insert review
+  await insertRow('work_reviews', {
+    goal_id: id,
+    reviewer_name: 'Bio (CEO)',
+    agent_role: (goal?.assigned_roles || []).join(', '),
+    rating: selectedRating || 2,
+    feedback: feedback,
+    action_required: action || null,
+    status: 'pending'
+  });
+
+  // Revert goal to active
+  await patchRow('company_goals', id, { status: 'active', confirmed_by: null, confirmed_at: null });
+
+  closeModal();
+  selectedRating = 0;
+  showToast('❌ Goal rejected. Feedback sent to agent.', 'success');
+  loadAndRender();
+}
+
+function showModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+// ===== Competitor Filter =====
+let compFilter = 'all';
+function setCompFilter(f) {
+  compFilter = f;
+  document.querySelectorAll('.comp-filter').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderCompetitors();
+}
+
+// ===== Tab Navigation =====
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane-' + t.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== Review Form =====
+let reviewRating = 0;
+function setReviewRating(val) {
+  reviewRating = val;
+  document.querySelectorAll('#review-stars .star').forEach(s => {
+    s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+  });
+}
+
+async function submitReview() {
+  const agentRole = document.getElementById('review-agent').value;
+  const feedback = document.getElementById('review-feedback').value.trim();
+  const action = document.getElementById('review-action').value.trim();
+  const goalId = document.getElementById('review-goal').value;
+
+  if (!agentRole || !feedback) { showToast('Agent and feedback required', 'error'); return; }
+
+  const payload = {
+    reviewer_name: 'Bio (CEO)',
+    agent_role: agentRole,
+    rating: reviewRating || 3,
+    feedback: feedback,
+    action_required: action || null,
+    status: 'pending'
+  };
+  if (goalId) payload.goal_id = goalId;
+
+  const result = await insertRow('work_reviews', payload);
+  if (result.error) { showToast('❌ ' + (result.error.message || 'Failed'), 'error'); return; }
+
+  // Clear form
+  document.getElementById('review-feedback').value = '';
+  document.getElementById('review-action').value = '';
+  document.getElementById('review-goal').value = '';
+  reviewRating = 0;
+  document.querySelectorAll('#review-stars .star').forEach(s => s.classList.remove('active'));
+
+  showToast('✅ Feedback submitted!', 'success');
+  loadAndRender();
+}
+
+// ===== Data =====
+let allCompetitors = [];
+let allReviews = [];
+
+// ===== Render =====
+async function loadAndRender() {
+  const [manifesto, goals, team, findings, devTasks, competitors, reviews] = await Promise.all([
+    fetchTable('company_manifesto', 'vision,mission,values'),
+    fetchTable('company_goals', 'id,title,description,category,success_metric,target_value,current_value,quarter,status,assigned_roles,holiday_reward,depends_on,metric_type,direction,confirmed_by,confirmed_at', '', 'title.asc'),
+    fetchTable('team_members', 'id,name,role,avatar_emoji,specialization,status,current_goal_id,holiday_earned_days,holiday_reason,holiday_until,last_active,tasks_completed,bugs_found,bugs_fixed,emergency_recall_count,bonus_holiday_days', '', 'role.asc'),
+    fetchTable('qa_findings', 'id,severity,category,title,description,url,status,created_at', '', 'created_at.desc', '15'),
+    fetchTable('qa_dev_tasks', 'id,title,status,priority', '', 'priority.asc', '10'),
+    fetchTable('company_competitors', 'id,name,url,logo_url,country,type,description,pricing_model,starting_price,commission_pct,target_market,key_features,strengths,weaknesses,threat_level,our_advantage', '', 'threat_level.asc'),
+    fetchTable('work_reviews', 'id,goal_id,reviewer_name,agent_role,rating,feedback,action_required,status,created_at', '', 'created_at.desc')
+  ]);
+
+  window._goals = goals;
+  allCompetitors = competitors;
+  allReviews = reviews;
+
+  const m = manifesto[0] || { vision: '', mission: '', values: [] };
+  const readinessGoal = goals.find(g => g.title.includes('Market Readiness'));
+  const readinessScore = readinessGoal ? Math.round(readinessGoal.current_value) : 0;
+
+  // Gauge ring
+  const circumference = 2 * Math.PI * 70;
+  const offset = circumference - (readinessScore / 100) * circumference;
+
+  const activeGoals = goals.filter(g => g.status === 'active').length;
+  const completedGoals = goals.filter(g => g.status === 'confirmed').length;
+  const pendingReview = goals.filter(g => g.status === 'completed').length;
+
+  const onHoliday = team.filter(t => t.status === 'on_holiday');
+  const recalled = team.filter(t => t.status === 'active' && t.emergency_recall_count > 0 && t.holiday_reason && t.holiday_reason.includes('EMERGENCY'));
+
+  const sevCounts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+  findings.forEach(f => { if (sevCounts[f.severity] !== undefined) sevCounts[f.severity]++; });
+
+  const valuesHtml = (m.values || []).map(v => '<div class="value-chip">' + (v.emoji || '') + ' ' + (v.title || '') + '</div>').join('');
+
+  // Goals HTML with action buttons
+  const goalsHtml = goals.map(g => {
+    const pct = Math.round(progressPercent(g));
+    const dir = g.direction || 'up';
+    const statusCls = 'st-' + g.status;
+    const current = g.metric_type === 'errors' ? g.current_value + ' open' : g.current_value + (g.metric_type === 'percent' ? '%' : '');
+    const target = g.metric_type === 'errors' ? '→ 0' : '→ ' + g.target_value + (g.metric_type === 'percent' ? '%' : '');
+
+    let depHtml = '';
+    if (g.depends_on && g.depends_on.length > 0) {
+      const depNames = g.depends_on.map(did => {
+        const dep = goals.find(x => x.id === did);
+        return dep ? dep.title.substring(0, 20) : '?';
+      });
+      depHtml = '<div class="dep-chain">🔗 depends: ' + depNames.join(', ') + '</div>';
+    }
+
+    // Action buttons — show when agent claims done (status=completed)
+    let actionsHtml = '';
+    if (g.status === 'completed') {
+      actionsHtml = '<div class="goal-actions">' +
+        '<span style="font-size:.65rem;color:var(--yellow);margin-right:auto;align-self:center">⚠️ Awaiting your review</span>' +
+        '<button class="btn btn-confirm" onclick="confirmGoal(\'' + g.id + '\',\'' + g.title.replace(/'/g, "\\'") + '\')">✅ Confirm</button>' +
+        '<button class="btn btn-reject" onclick="rejectGoal(\'' + g.id + '\',\'' + g.title.replace(/'/g, "\\'") + '\')">❌ Reject</button>' +
+      '</div>';
+    } else if (g.status === 'active') {
+      actionsHtml = '<div class="goal-actions">' +
+        '<button class="btn btn-confirm" onclick="confirmGoal(\'' + g.id + '\',\'' + g.title.replace(/'/g, "\\'") + '\')">✅ Mark Done</button>' +
+        '<button class="btn btn-review" onclick="rejectGoal(\'' + g.id + '\',\'' + g.title.replace(/'/g, "\\'") + '\')">💬 Give Feedback</button>' +
+      '</div>';
+    } else if (g.status === 'confirmed') {
+      actionsHtml = '<div class="goal-actions">' +
+        '<span style="font-size:.65rem;color:var(--green);margin-right:auto;align-self:center">✅ Confirmed by ' + (g.confirmed_by || 'CEO') + '</span>' +
+        '<button class="btn btn-review" onclick="rejectGoal(\'' + g.id + '\',\'' + g.title.replace(/'/g, "\\'") + '\')">💬 Add Feedback</button>' +
+      '</div>';
+    }
+
+    return '<div class="goal-card">' +
+      '<div class="goal-header">' +
+        '<div><div class="goal-title">' + g.title + '</div>' +
+        '<div class="goal-cat">' + g.category + '</div></div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">' +
+          '<div class="goal-icon">' + goalIcon(g.category) + '</div>' +
+          '<span class="goal-status ' + statusCls + '">' + g.status + '</span>' +
+        '</div>' +
+      '</div>' +
+      progressBar(pct, dir) +
+      '<div class="goal-stats"><span>' + current + '</span><span>' + target + '</span></div>' +
+      '<div class="goal-reward">🏖️ ' + (g.holiday_reward || '—') + '</div>' +
+      (g.description ? '<div class="goal-desc">' + g.description.replace(/\\n/g, '<br>') + '</div>' : '') +
+      depHtml +
+      actionsHtml +
+    '</div>';
+  }).join('');
+
+  // Team HTML
+  const teamHtml = team.map(t => {
+    const goal = goals.find(g => g.id === t.current_goal_id);
+    const statusDot = t.status === 'on_holiday' ? 'dot-holiday' : recalled.includes(t) ? 'dot-recall' : 'dot-active';
+    const cardCls = t.status === 'on_holiday' ? 'holiday' : recalled.includes(t) ? 'recall' : '';
+    const goalPct = goal ? Math.round(progressPercent(goal)) : 0;
+    const holidayInfo = t.status === 'on_holiday' && t.holiday_until
+      ? '<div class="member-holiday-info">🏖️ Back: ' + new Date(t.holiday_until).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + '</div>'
+      : '';
+    const recallInfo = recalled.includes(t)
+      ? '<div class="member-holiday-info" style="color:var(--red)">🚨 Recall #' + t.emergency_recall_count + ' — +' + t.bonus_holiday_days + ' bonus days</div>'
+      : '';
+
+    return '<div class="member-card ' + cardCls + '">' +
+      '<div class="member-top">' +
+        '<div class="member-avatar">' + (t.avatar_emoji || '🤖') + '</div>' +
+        '<div><div class="member-name">' + t.name + '</div>' +
+        '<div class="member-role">' + t.role.replace(/_/g, ' ') + '</div></div>' +
+        '<div class="member-status-dot ' + statusDot + '"></div>' +
+      '</div>' +
+      '<div class="member-goal">🎯 ' + (goal ? goal.title.substring(0, 30) + '... (' + goalPct + '%)' : 'No goal assigned') + '</div>' +
+      '<div class="member-stats">' +
+        '<div class="stat"><div class="stat-val">' + (t.tasks_completed || 0) + '</div><div class="stat-label">Tasks</div></div>' +
+        '<div class="stat"><div class="stat-val">' + (t.bugs_found || 0) + '</div><div class="stat-label">Found</div></div>' +
+        '<div class="stat"><div class="stat-val" style="color:var(--green)">' + (t.bugs_fixed || 0) + '</div><div class="stat-label">Fixed</div></div>' +
+      '</div>' +
+      holidayInfo + recallInfo +
+    '</div>';
+  }).join('');
+
+  // Findings HTML
+  const findingsHtml = findings.length > 0
+    ? '<table class="findings-table"><thead><tr><th>Sev</th><th>Finding</th><th>Component</th><th>Status</th><th>Time</th></tr></thead><tbody>' +
+      findings.map(f => {
+        const sevCls = 'sev-' + (f.severity || 'low');
+        const time = new Date(f.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        return '<tr>' +
+          '<td><span class="sev ' + sevCls + '">' + f.severity + '</span></td>' +
+          '<td class="finding-title" title="' + (f.description || '').replace(/"/g, '&quot;') + '">' + f.title + '</td>' +
+          '<td style="color:var(--text-muted)">' + (f.category || f.url || '—') + '</td>' +
+          '<td><span class="sev sev-' + (f.status === 'fixed' ? 'low' : 'high') + '">' + f.status + '</span></td>' +
+          '<td class="mono" style="color:var(--text-subtle);font-size:.7rem">' + time + '</td>' +
+        '</tr>';
+      }).join('') + '</tbody></table>'
+    : '<div style="text-align:center;padding:2rem;color:var(--text-muted)">No findings yet — QA cycle hasn\'t run</div>';
+
+  // Schedule
+  const schedule = [
+    { time: '07:00', icon: '🏢', name: 'HR Manager' },
+    { time: '08:00', icon: '🎯', name: 'PM Orchestrator' },
+    { time: '10:00', icon: '⚡', name: 'Dev Executor' },
+    { time: '13:00', icon: '🎨', name: 'Design System' },
+    { time: '15:00', icon: '🏗️', name: 'Architect' },
+    { time: '17:00', icon: '🔍', name: 'QA Tester' },
+    { time: '19:00', icon: '🎯', name: 'PM EOD' },
+  ];
+  const now = new Date();
+  const wibHour = (now.getUTCHours() + 7) % 24;
+  const scheduleHtml = schedule.map(s => {
+    const hour = parseInt(s.time.split(':')[0]);
+    const isNext = hour > wibHour && hour <= wibHour + 2;
+    return '<div class="sched-item' + (isNext ? ' next' : '') + '"><div class="sched-time">' + s.time + '</div><div class="sched-icon">' + s.icon + '</div><div class="sched-name">' + s.name + '</div></div>';
+  }).join('');
+
+  // Holiday banner
+  const holidayBanner = onHoliday.length > 0
+    ? '<div class="holiday-banner"><div class="holiday-banner-icon">🏖️</div><div class="holiday-banner-text"><strong>' + onHoliday.map(t => t.name).join(', ') + '</strong> on holiday — earned ' + onHoliday.map(t => t.holiday_earned_days + ' days').join(', ') + '</div></div>'
+    : recalled.length > 0
+    ? '<div class="holiday-banner" style="border-color:rgba(239,68,68,.2);background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(234,179,8,.05))"><div class="holiday-banner-icon">🚨</div><div class="holiday-banner-text"><strong>EMERGENCY RECALL ACTIVE</strong> — ' + recalled.map(t => t.name).join(', ') + ' recalled from holiday to fix critical bugs</div></div>'
+    : '';
+
+  // Pending review banner
+  const reviewBanner = pendingReview > 0
+    ? '<div class="holiday-banner" style="border-color:rgba(234,179,8,.2);background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(201,168,76,.05))"><div class="holiday-banner-icon">⏳</div><div class="holiday-banner-text"><strong>' + pendingReview + ' goal(s) awaiting your review!</strong> — Agents claim completion, but you must confirm before holiday rewards are granted.</div></div>'
+    : '';
+
+  // Review form goal options
+  const goalOptions = goals.map(g => '<option value="' + g.id + '">' + g.title + '</option>').join('');
+
+  // Reviews list
+  const reviewsListHtml = allReviews.length > 0
+    ? '<div class="review-list">' + allReviews.map(r => {
+        const goal = goals.find(g => g.id === r.goal_id);
+        const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+        return '<div class="review-card">' +
+          '<div class="review-top">' +
+            '<div><div class="review-agent">' + r.agent_role + '</div>' +
+            '<div class="review-meta">' + new Date(r.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + (goal ? ' · ' + goal.title : '') + '</div></div>' +
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.2rem">' +
+              '<div class="review-stars">' + stars + '</div>' +
+              '<span class="review-status rs-' + r.status + '">' + r.status + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="review-feedback">' + r.feedback + '</div>' +
+          (r.action_required ? '<div class="review-action">📋 Action: ' + r.action_required + '</div>' : '') +
+        '</div>';
+      }).join('') + '</div>'
+    : '<div style="text-align:center;padding:2rem;color:var(--text-muted)">No feedback submitted yet</div>';
+
+  // Competitor summary stats
+  const threatCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+  competitors.forEach(c => { if (threatCounts[c.threat_level] !== undefined) threatCounts[c.threat_level]++; });
+  const idCompetitors = competitors.filter(c => c.country === 'ID').length;
+
+  document.getElementById('app').innerHTML =
+    // ===== OPERATIONS TAB =====
+    '<div class="tab-pane active" id="pane-ops">' +
+      '<div class="header">' +
+        '<div class="header-left">' +
+          '<div class="logo">beligih<span>.id</span></div>' +
+          '<span class="badge badge-live">LIVE OPS</span>' +
+        '</div>' +
+        '<div class="header-right">' +
+          '<div class="clock" id="clock">' + now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' WIB</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="container">' +
+        '<div class="grid-main">' +
+          '<div class="hero-section">' +
+            '<div class="score-gauge">' +
+              '<div class="gauge-ring">' +
+                '<svg width="160" height="160">' +
+                  '<circle class="gauge-bg" cx="80" cy="80" r="70"></circle>' +
+                  '<circle class="gauge-fill" cx="80" cy="80" r="70" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '"></circle>' +
+                '</svg>' +
+                '<div class="gauge-text">' +
+                  '<div class="gauge-value" style="color:' + (readinessScore >= 85 ? 'var(--green)' : readinessScore >= 65 ? 'var(--gold)' : 'var(--red)') + '">' + readinessScore + '%</div>' +
+                  '<div class="gauge-label">Readiness</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="gauge-target">Target: 85% — ' + activeGoals + ' active · ' + completedGoals + ' confirmed · ' + pendingReview + ' pending review</div>' +
+            '</div>' +
+            '<div class="manifesto-card">' +
+              '<div class="manifesto-label">👁️ Vision</div>' +
+              '<div class="manifesto-vision">' + m.vision + '</div>' +
+              '<div class="manifesto-label">🎯 Mission</div>' +
+              '<div class="manifesto-mission">' + m.mission + '</div>' +
+              '<div class="values">' + valuesHtml + '</div>' +
+            '</div>' +
+          '</div>' +
+          reviewBanner +
+          holidayBanner +
+          '<div>' +
+            '<div class="section-title">⏰ Daily Schedule (WIB)</div>' +
+            '<div class="schedule">' + scheduleHtml + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="section-title">📊 Q3-2026 Goals <span class="count">' + goals.length + ' goals</span></div>' +
+            '<div class="goals-grid">' + goalsHtml + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="section-title">👥 Team Status <span class="count">' + team.length + ' agents</span></div>' +
+            '<div class="team-grid">' + teamHtml + '</div>' +
+          '</div>' +
+          '<div class="findings-section">' +
+            '<div class="section-title">🔍 Recent QA Findings <span class="count">' +
+              '<span style="color:var(--red)">' + sevCounts.critical + ' crit</span> · ' +
+              '<span style="color:var(--yellow)">' + sevCounts.high + ' high</span> · ' +
+              '<span style="color:var(--blue)">' + sevCounts.medium + ' med</span>' +
+            '</span></div>' +
+            findingsHtml +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // ===== COMPETITORS TAB =====
+    '<div class="tab-pane" id="pane-competitors">' +
+      '<div class="container">' +
+        '<div style="margin-bottom:1.5rem">' +
+          '<h1 style="font-size:1.5rem;font-weight:800;margin-bottom:.25rem">⚔️ Competitive Intelligence</h1>' +
+          '<p style="font-size:.85rem;color:var(--text-muted)">' + competitors.length + ' competitors tracked · ' + idCompetitors + ' from Indonesia · ' +
+            '<span style="color:var(--red)">' + threatCounts.critical + ' critical</span> · ' +
+            '<span style="color:var(--yellow)">' + threatCounts.high + ' high</span> · ' +
+            '<span style="color:var(--blue)">' + threatCounts.medium + ' medium</span> · ' +
+            '<span style="color:var(--text-subtle)">' + threatCounts.low + ' low</span>' +
+          '</p>' +
+        '</div>' +
+        '<div class="comp-filters">' +
+          '<div class="comp-filter active" data-filter="all" onclick="setCompFilter(\'all\')">All</div>' +
+          '<div class="comp-filter" data-filter="critical" onclick="setCompFilter(\'critical\')">🔴 Critical</div>' +
+          '<div class="comp-filter" data-filter="high" onclick="setCompFilter(\'high\')">🟡 High</div>' +
+          '<div class="comp-filter" data-filter="ID" onclick="setCompFilter(\'ID\')">🇮🇩 Indonesia</div>' +
+          '<div class="comp-filter" data-filter="platform" onclick="setCompFilter(\'platform\')">Platform</div>' +
+          '<div class="comp-filter" data-filter="page-builder" onclick="setCompFilter(\'page-builder\')">Page Builder</div>' +
+          '<div class="comp-filter" data-filter="pos" onclick="setCompFilter(\'pos\')">POS</div>' +
+        '</div>' +
+        '<div class="comp-grid" id="comp-grid"></div>' +
+      '</div>' +
+    '</div>' +
+
+    // ===== REVIEWS TAB =====
+    '<div class="tab-pane" id="pane-reviews">' +
+      '<div class="container">' +
+        '<h1 style="font-size:1.5rem;font-weight:800;margin-bottom:.25rem">💬 Feedback & Work Reviews</h1>' +
+        '<p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1.5rem">Criticize, rate, and guide your AI team. They read their reviews each morning.</p>' +
+        '<div class="review-form">' +
+          '<div class="review-form-title">📝 New Review / Critique</div>' +
+          '<div class="form-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Agent / Role</label>' +
+              '<select class="form-select" id="review-agent">' +
+                '<option value="">Select agent...</option>' +
+                team.map(t => '<option value="' + t.role + '">' + t.avatar_emoji + ' ' + t.name + ' (' + t.role.replace(/_/g, ' ') + ')</option>').join('') +
+                '<option value="all">All Team</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Related Goal (optional)</label>' +
+              '<select class="form-select" id="review-goal">' +
+                '<option value="">— None —</option>' +
+                goalOptions +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Rating</label>' +
+            '<div class="star-rating" id="review-stars">' +
+              [1,2,3,4,5].map(n => '<span class="star" data-val="' + n + '" onclick="setReviewRating(' + n + ')">★</span>').join('') +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Critique / Feedback</label>' +
+            '<textarea class="form-textarea" id="review-feedback" placeholder="What is good? What needs improvement? Be specific and direct..."></textarea>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Action Required (optional)</label>' +
+            '<textarea class="form-textarea" id="review-action" placeholder="Specific steps the agent must take to improve..."></textarea>' +
+          '</div>' +
+          '<button class="btn-submit" onclick="submitReview()">Submit Review</button>' +
+        '</div>' +
+        '<div class="section-title">📋 All Reviews <span class="count">' + allReviews.length + ' total</span></div>' +
+        reviewsListHtml +
+      '</div>' +
+    '</div>';
+}
+
+function renderCompetitors() {
+  let filtered = allCompetitors;
+  if (compFilter !== 'all') {
+    if (['critical','high','medium','low'].includes(compFilter)) {
+      filtered = allCompetitors.filter(c => c.threat_level === compFilter);
+    } else {
+      filtered = allCompetitors.filter(c => c.country === compFilter || c.type === compFilter);
+    }
+  }
+
+  const html = filtered.map(c => {
+    const threatCls = 'threat-' + c.threat_level;
+    const tagThreat = 'tag-threat-' + c.threat_level;
+    return '<div class="comp-card ' + threatCls + '">' +
+      '<div class="comp-top">' +
+        '<div>' +
+          '<a href="' + c.url + '" target="_blank" style="text-decoration:none"><div class="comp-name">' + c.name + '</div></a>' +
+          '<a href="' + c.url + '" target="_blank" class="comp-url">' + c.url.replace('https://','') + '</a>' +
+        '</div>' +
+        '<span class="comp-tag ' + tagThreat + '">' + c.threat_level + '</span>' +
+      '</div>' +
+      '<div class="comp-meta">' +
+        '<span class="comp-tag tag-country">' + (c.country === 'ID' ? '🇮🇩 ID' : c.country === 'CA' ? '🇨🇦 CA' : c.country === 'US' ? '🇺🇸 US' : '🌍 ' + c.country) + '</span>' +
+        '<span class="comp-tag tag-type">' + c.type.replace(/-/g,' ') + '</span>' +
+      '</div>' +
+      '<div class="comp-desc">' + (c.description || '') + '</div>' +
+      '<div class="comp-price">💰 ' + (c.pricing_model || '') + ' · ' + (c.starting_price || '') + ' · Commission: ' + (c.commission_pct || '') + '</div>' +
+      '<div class="comp-features">' + (c.key_features || []).slice(0, 6).map(f => '<span class="comp-feature">' + f + '</span>').join('') + '</div>' +
+      '<div class="comp-sw">' +
+        '<div class="comp-sw-item comp-sw-strength"><strong>✅ Strengths</strong>' + (c.strengths || '—') + '</div>' +
+        '<div class="comp-sw-item comp-sw-weakness"><strong>❌ Weaknesses</strong>' + (c.weaknesses || '—') + '</div>' +
+      '</div>' +
+      '<div class="comp-advantage">' +
+        '<div class="comp-advantage-label">🚀 Lapak Advantage</div>' +
+        c.our_advantage +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  const grid = document.getElementById('comp-grid');
+  if (grid) grid.innerHTML = html || '<div style="text-align:center;padding:2rem;color:var(--text-muted)">No competitors match filter</div>';
+}
+
+// Render competitors after load
+function afterRender() { renderCompetitors(); }
+
+// Clock update
+function updateClock() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' WIB';
+}
+setInterval(updateClock, 60000);
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+// Init + auto-refresh
+loadAndRender().then(afterRender);
+setInterval(() => loadAndRender().then(afterRender), 30000);
+</script>
+</body>
+</html>
